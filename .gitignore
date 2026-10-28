@@ -1,0 +1,10 @@
+node_modules
+dist
+dev-dist
+*.local
+.DS_Store
+*.tsbuildinfo
+
+# Your real Instagram export stays on your machine. Never commit it.
+sample-data/*
+!sample-data/README.md

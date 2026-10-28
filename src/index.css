@@ -1,0 +1,102 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --font-display: ui-rounded, 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --color-ink-950: #0b0b0d;
+  --color-ink-900: #111114;
+  --color-ink-850: #17171b;
+  --color-ink-800: #1e1e23;
+  --color-ink-700: #2a2a31;
+  --color-ink-600: #3a3a43;
+  --color-ink-500: #6c6c78;
+  --color-ink-400: #8e8e9a;
+  --color-ink-300: #b4b4bf;
+  --color-ink-100: #ededf2;
+
+  /* "Sunrise": the app's own accent, warmer than Instagram's pink-purple. */
+  --color-sun-300: #ffd08a;
+  --color-sun-400: #ffb25e;
+  --color-sun-500: #ff8a4c;
+  --color-sun-600: #ff6250;
+  --color-danger: #ff5a5f;
+  --color-ok: #4ade80;
+
+  --animate-fade-in: fade-in 0.25s ease-out both;
+  --animate-sheet-in: sheet-in 0.32s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  --animate-pop: pop 0.18s ease-out both;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes sheet-in {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  @keyframes pop {
+    from { transform: scale(0.96); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+}
+
+@utility bg-sunrise {
+  background-image: linear-gradient(135deg, var(--color-sun-300) 0%, var(--color-sun-500) 45%, var(--color-sun-600) 100%);
+}
+
+@utility text-sunrise {
+  background-image: linear-gradient(135deg, var(--color-sun-300) 0%, var(--color-sun-500) 50%, var(--color-sun-600) 100%);
+  background-clip: text;
+  color: transparent;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  html {
+    background: var(--color-ink-950);
+    color: var(--color-ink-100);
+    color-scheme: dark;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    font-family: var(--font-sans);
+    overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+  }
+  button {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-sun-400);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

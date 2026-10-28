@@ -1,0 +1,24 @@
+{
+  "saved_saved_collections": [
+    {
+      "title": "Workouts",
+      "string_map_data": { "Creation Time": { "timestamp": 1700000000 } },
+      "media": [
+        { "title": "gym.fake", "string_map_data": { "Name": { "value": "gym.fake", "href": "https://www.instagram.com/reel/NfakeW0001/" }, "Added Time": { "timestamp": 1716000000 } } },
+        { "title": "run.fake", "string_map_data": { "Name": { "value": "run.fake", "href": "https://www.instagram.com/p/NfakeW0002/" }, "Added Time": { "timestamp": 1716100000 } } }
+      ]
+    },
+    {
+      "label_values": [
+        { "label": "Name", "value": "Ideas" },
+        {
+          "label": "Posts",
+          "vec": [
+            { "dict": [{ "label": "URL", "href": "https://www.instagram.com/p/NfakeI0001/" }, { "label": "Username", "value": "idea.one" }] },
+            { "dict": [{ "label": "URL", "href": "https://www.instagram.com/p/NfakeW0002/" }, { "label": "Username", "value": "run.fake" }] }
+          ]
+        }
+      ]
+    }
+  ]
+}
