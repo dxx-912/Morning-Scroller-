@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import pkg from './package.json' with { type: 'json' }
+import { videoApi } from './server/videoApi'
 
 export default defineConfig({
   define: {
@@ -13,6 +14,8 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    // GET /api/video/:shortcode, so reels play in the app's own player (dev/preview only).
+    videoApi(),
     // `npm run dev:https` serves over HTTPS with a self-signed cert. Phones only
     // allow service workers (offline + install) on HTTPS or localhost.
     process.env.HTTPS ? basicSsl() : null,

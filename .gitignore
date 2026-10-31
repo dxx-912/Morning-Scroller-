@@ -8,3 +8,6 @@ dev-dist
 # Your real Instagram export stays on your machine. Never commit it.
 sample-data/*
 !sample-data/README.md
+
+# Instagram session for the local video server (never commit)
+.secrets/

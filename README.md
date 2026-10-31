@@ -29,6 +29,22 @@ npm run dev
 
 Open http://localhost:5173 and import your export.
 
+## Autoplaying videos (optional)
+
+By default the feed uses Instagram's embeds. Those never autoplay, and Instagram sends some reels (often ones with licensed music) to instagram.com instead of playing them. With this set up, reels and video posts play in the app's own player instead: they autoplay as you scroll, start muted (a browser rule), and one tap on **Tap for sound** keeps sound on. Photos and carousels still use the embed, and anything that can't be fetched falls back to it.
+
+It works by having `npm run dev` / `npm run preview` look up each video with [yt-dlp](https://github.com/yt-dlp/yt-dlp), logged in as an Instagram account. This uses unofficial access to Instagram, so it can break when Instagram changes things, and the account could get rate-limited or flagged. **Use a spare account, not your main one.** It doesn't need any saved posts; it only needs to be able to see them.
+
+1. `brew install yt-dlp`
+2. Log into the spare account in a separate browser profile (in Arc: a new Space with **Create new profile**).
+3. Install the **Get cookies.txt LOCALLY** extension in that profile. On instagram.com, export cookies **for the current site only** (not "Export All").
+4. Save the file as `.secrets/ig-cookies.txt` in this folder. `.secrets/` is git-ignored. Treat the file like a password.
+5. Restart `npm run dev`.
+
+When the login expires (every few weeks), the feed shows a message and falls back to embeds. Repeat steps 3–4.
+
+A static deploy has no video server, so it always uses embeds.
+
 ## Open it on your phone (same Wi‑Fi)
 
 `npm run dev` also listens on your local network and prints a **Network** URL, e.g.:
@@ -104,8 +120,9 @@ src/
     library.ts        Merging imports, backup format and validation
     db.ts             IndexedDB (posts, categories, meta) via idb
   state/              React context for the library, hash router, display settings
-  components/         Embed, sheets, category picker, import panel, tab bar
+  components/         Media (own video player or embed), Embed, sheets, category picker, import panel, tab bar
   screens/            Onboarding, DayPicker, Feed, Library, Categories, Settings
+server/videoApi.ts    Dev/preview-only /api/video/:shortcode, backed by yt-dlp
 tests/                Vitest specs; synthetic exports live in fixtures/
 scripts/              inspect-export.ts
 ```
@@ -116,6 +133,6 @@ scripts/              inspect-export.ts
 
 ## Privacy
 
-Your export and library never leave your device. The only network requests are Instagram's own embeds, loaded from instagram.com when a post is on screen. `sample-data/` is git-ignored so your real export can't be committed by accident.
+Your export and library never leave your device. The only network requests are Instagram's own embeds, loaded from instagram.com when a post is on screen, and, if you set up autoplaying videos, the local server's yt-dlp lookups to Instagram using your spare account's login. `sample-data/` is git-ignored so your real export can't be committed by accident.
 
 Not affiliated with Instagram or Meta.

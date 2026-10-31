@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { CategoryAssignSheet } from '../components/CategoryAssign'
-import { Embed, type EmbedState } from '../components/Embed'
+import { type EmbedState } from '../components/Embed'
+import { Media } from '../components/Media'
 import { IconChevronDown, IconChevronUp, IconExternal, IconFlag, IconShuffle, IconTag } from '../components/icons'
 import { Button } from '../components/Sheet'
 import { useToast } from '../components/Toast'
 import { ALL, UNCATEGORIZED, buildFeed } from '../lib/feed'
 import { useElementSize } from '../lib/hooks'
+import { getVideo } from '../lib/video'
 import type { Category, Post } from '../lib/types'
 import { formatDate, plural } from '../lib/util'
 import { useLibrary } from '../state/LibraryContext'
@@ -16,6 +18,14 @@ const HEADER_H = 52
 const ACTIONS_H = 64
 /** Mount the current embed plus this many neighbors on each side. */
 const WINDOW = 1
+/** Look up video links this many posts ahead so they're ready when you get there. */
+const PREFETCH_AHEAD = 3
+
+const SETUP_MESSAGES: Record<string, string> = {
+  'no-login': 'Videos need an Instagram login file. Showing embeds for now.',
+  'login-expired': 'Instagram login expired. Re-export it to get videos back.',
+  'no-ytdlp': 'yt-dlp isn\'t installed. Showing embeds for now.',
+}
 
 export function categoryLabel(id: string, categories: Category[]): string {
   if (id === ALL) return 'All saved'
@@ -35,6 +45,17 @@ export function Feed({ categoryId }: { categoryId: string }) {
   const currentRef = useRef(current)
   currentRef.current = current
   const [tagging, setTagging] = useState<string | null>(null)
+  // Start muted: browsers only autoplay silent video until you tap.
+  const [muted, setMuted] = useState(true)
+  const warnedSetup = useRef(false)
+  const onSetupIssue = useCallback(
+    (reason: string) => {
+      if (warnedSetup.current) return
+      warnedSetup.current = true
+      toast(SETUP_MESSAGES[reason] ?? 'Videos unavailable. Showing embeds.')
+    },
+    [toast],
+  )
 
   const scroller = useRef<HTMLDivElement>(null)
   const { width, height } = useElementSize(scroller)
@@ -58,6 +79,10 @@ export function Feed({ categoryId }: { categoryId: string }) {
     const code = order[current]
     if (code) savePosition(code)
   }, [current, order, savePosition])
+
+  useEffect(() => {
+    for (const code of order.slice(current + 1, current + 1 + PREFETCH_AHEAD)) void getVideo(code)
+  }, [current, order])
 
   const go = useCallback(
     (i: number) => {
@@ -159,6 +184,10 @@ export function Feed({ categoryId }: { categoryId: string }) {
                     maxWidth={embedW}
                     maxHeight={embedH}
                     captioned={captions}
+                    active={i === current}
+                    muted={muted}
+                    onMutedChange={setMuted}
+                    onSetupIssue={onSetupIssue}
                     onState={(s) => handleEmbedState(code, i, s)}
                     onTag={() => setTagging(code)}
                     onFlag={() => flag(code)}
@@ -196,18 +225,32 @@ interface FeedItemProps {
   maxWidth: number
   maxHeight: number
   captioned: boolean
+  active: boolean
+  muted: boolean
+  onMutedChange: (muted: boolean) => void
+  onSetupIssue: (reason: string) => void
   onState: (s: EmbedState) => void
   onTag: () => void
   onFlag: () => void
 }
 
-function FeedItem({ post, categories, maxWidth, maxHeight, captioned, onState, onTag, onFlag }: FeedItemProps) {
+function FeedItem({ post, categories, maxWidth, maxHeight, captioned, active, muted, onMutedChange, onSetupIssue, onState, onTag, onFlag }: FeedItemProps) {
   const cats = categories.filter((c) => post.categoryIds.includes(c.id))
   // The wrapper shrinks to the (scaled) embed, so the action bar lines up with it.
   return (
     <div className="flex w-fit max-w-full flex-col" style={{ minWidth: Math.min(maxWidth, 300) }}>
       <div className="flex items-center justify-center" style={{ maxHeight }}>
-        <Embed post={post} maxWidth={maxWidth} maxHeight={maxHeight} captioned={captioned} onState={onState} />
+        <Media
+          post={post}
+          maxWidth={maxWidth}
+          maxHeight={maxHeight}
+          captioned={captioned}
+          active={active}
+          muted={muted}
+          onMutedChange={onMutedChange}
+          onSetupIssue={onSetupIssue}
+          onState={onState}
+        />
       </div>
       <div className="flex shrink-0 items-center gap-3 px-1" style={{ height: ACTIONS_H }}>
         <div className="min-w-0 flex-1">

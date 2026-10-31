@@ -146,7 +146,7 @@ export function Embed({ post, maxWidth, maxHeight, captioned = false, onState }:
   )
 }
 
-function Skeleton() {
+export function Skeleton() {
   return (
     <div className="flex h-full animate-pulse flex-col gap-3 p-4">
       <div className="flex items-center gap-3">

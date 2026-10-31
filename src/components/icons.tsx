@@ -117,6 +117,23 @@ export const IconPhoto = (p: P) => (
     <path d="m20.5 16-5-5-8.5 8.5" />
   </Icon>
 )
+export const IconPlay = (p: P) => (
+  <Icon {...p}>
+    <path d="M7 4.5v15l12.5-7.5L7 4.5Z" fill="currentColor" stroke="none" />
+  </Icon>
+)
+export const IconVolume = (p: P) => (
+  <Icon {...p}>
+    <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4v-5Z" fill="currentColor" stroke="none" />
+    <path d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11" />
+  </Icon>
+)
+export const IconMuted = (p: P) => (
+  <Icon {...p}>
+    <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4v-5Z" fill="currentColor" stroke="none" />
+    <path d="m15.5 9.5 5 5M20.5 9.5l-5 5" />
+  </Icon>
+)
 export const IconRestore = (p: P) => (
   <Icon {...p}>
     <path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.6M4 4v4.6h4.6" />

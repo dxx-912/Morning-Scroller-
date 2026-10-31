@@ -16,5 +16,5 @@
     "resolveJsonModule": true,
     "types": ["node"]
   },
-  "include": ["vite.config.ts", "pwa-assets.config.ts", "scripts", "tests"]
+  "include": ["vite.config.ts", "pwa-assets.config.ts", "scripts", "server", "tests"]
 }
