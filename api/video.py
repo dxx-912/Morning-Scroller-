@@ -12,7 +12,7 @@ It does the same job as server/videoApi.ts does under `npm run dev`: run
 yt-dlp, logged in as the spare Instagram account, and return one direct .mp4
 link the app plays in its own <video> player.
 
-The login (a cookies.txt file) lives in Upstash Redis when it's connected,
+The login (a cookies.txt file) lives in Redis when it's connected,
 so the cookies Instagram refreshes on each request are saved back and the
 session lasts longer. Without Redis it's read from the IG_COOKIES_B64 env var.
 
@@ -20,8 +20,8 @@ Keep pick_video() in step with pickVideo() in server/videoApi.ts.
 
 Env:
   IG_COOKIES_B64            starting login (base64 cookies.txt); seeds Redis
-  KV_REST_API_URL/_TOKEN    Upstash Redis (added when you connect it in Vercel);
-                            UPSTASH_REDIS_REST_URL/_TOKEN also work
+  REDIS_URL                 Redis (added when you connect it in Vercel), or
+  KV_REST_API_URL/_TOKEN    Upstash's REST pair (UPSTASH_REDIS_REST_* also work)
   REFRESH_PASSWORD          enables /api/login-refresh
   CRON_SECRET               Vercel sends it to the cron; other callers are refused
   HEALTH_SHORTCODE          a reel the daily check looks up
@@ -56,22 +56,42 @@ SETUP_REASONS = ("no-login", "login-expired", "no-ytdlp")
 
 # ---------- storage ----------
 
-def _redis_config():
+def _rest_config():
     url = os.environ.get("KV_REST_API_URL") or os.environ.get("UPSTASH_REDIS_REST_URL")
     token = os.environ.get("KV_REST_API_TOKEN") or os.environ.get("UPSTASH_REDIS_REST_TOKEN")
     return (url.rstrip("/"), token) if url and token else None
 
 
+def _redis_config():
+    """Storage is on when either an Upstash REST pair or a REDIS_URL is set."""
+    return _rest_config() or os.environ.get("REDIS_URL") or None
+
+
+_client = None
+
+
 def redis(*command):
-    """One Upstash REST call. Returns the result, or raises on failure."""
-    url, token = _redis_config()
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(list(command)).encode(),
-        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-    )
-    with urllib.request.urlopen(req, timeout=5) as resp:
-        return json.load(resp).get("result")
+    """One Redis command, as text. Raises on failure."""
+    rest = _rest_config()
+    if rest:
+        url, token = rest
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(list(command)).encode(),
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            return json.load(resp).get("result")
+    # Plain Redis (what Vercel's Redis integration provides as REDIS_URL).
+    global _client
+    if _client is None:
+        import redis as redis_py
+
+        _client = redis_py.Redis.from_url(
+            os.environ["REDIS_URL"], decode_responses=True, socket_timeout=5, socket_connect_timeout=5
+        )
+    result = _client.execute_command(*command)
+    return str(result) if isinstance(result, int) else result
 
 
 def env_cookies():
@@ -347,7 +367,7 @@ def refresh_page(body):
     if not password or not hmac.compare_digest(given.encode(), password.encode()):
         return 403, page("Wrong password.", "bad")
     if not _redis_config():
-        return 500, page("Storage isn't connected. Connect Upstash Redis to this project in Vercel first.", "bad")
+        return 500, page("Storage isn't connected. Connect a Redis database to this project in Vercel first.", "bad")
     text = (form.get("cookies") or [""])[0].replace("\r\n", "\n").strip() + "\n"
     if "instagram.com" not in text or "sessionid" not in text:
         return 400, page("That doesn't look like an Instagram cookies.txt (no sessionid). Export it while logged in.", "bad")

@@ -49,7 +49,7 @@ On Vercel, the same lookup runs as a serverless function (`api/video.py`), so th
 
 **Setup**, in Vercel → your project:
 
-1. **Storage → Connect Database → Upstash for Redis** (free tier), connected to this project. It holds the login and saves the cookies Instagram refreshes on each request, so the session lasts much longer.
+1. **Storage → Connect Database →** a Redis provider (free tier; for Upstash or Redis Cloud, set High Availability to None to see the free plan), connected to this project. It adds `REDIS_URL` (or `KV_REST_API_*`) automatically. It holds the login and saves the cookies Instagram refreshes on each request, so the session lasts much longer.
 2. **Settings → Environment Variables** (Production):
 
    | Variable | Value |
