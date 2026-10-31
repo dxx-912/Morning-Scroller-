@@ -1,6 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [{ "source": "/api/video/:code", "destination": "/api/video?code=:code" }],
+  "rewrites": [
+    { "source": "/api/video/:code", "destination": "/api/video?code=:code" },
+    { "source": "/api/cron/video-check", "destination": "/api/video?action=check" },
+    { "source": "/api/login-refresh", "destination": "/api/video?action=refresh" }
+  ],
+  "crons": [{ "path": "/api/cron/video-check", "schedule": "0 15 * * *" }],
   "functions": {
     "api/video.py": { "maxDuration": 60 }
   }

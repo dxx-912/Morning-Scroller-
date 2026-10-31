@@ -11,3 +11,6 @@ sample-data/*
 
 # Instagram session for the local video server (never commit)
 .secrets/
+
+# Python
+__pycache__/

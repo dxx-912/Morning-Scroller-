@@ -45,15 +45,30 @@ When the login expires (every few weeks), the feed shows a message and falls bac
 
 ### Videos on the deployed site (Vercel)
 
-On Vercel, the same lookup runs as a serverless function (`api/video.py`), so the deployed site plays videos without your computer being on and without visitors installing anything. It needs the spare account's login as an environment variable:
+On Vercel, the same lookup runs as a serverless function (`api/video.py`), so the deployed site plays videos without your computer being on and without visitors installing anything.
 
-1. Copy the login, encoded: `base64 -i .secrets/ig-cookies.txt | pbcopy`
-2. In Vercel → your project → Settings → Environment Variables, add `IG_COOKIES_B64` with that value (Production, and Preview if you want). Mark it Sensitive.
+**Setup**, in Vercel → your project:
+
+1. **Storage → Connect Database → Upstash for Redis** (free tier), connected to this project. It holds the login and saves the cookies Instagram refreshes on each request, so the session lasts much longer.
+2. **Settings → Environment Variables** (Production):
+
+   | Variable | Value |
+   | --- | --- |
+   | `IG_COOKIES_B64` | Starting login: `base64 -i .secrets/ig-cookies.txt \| pbcopy`. Mark Sensitive. |
+   | `REFRESH_PASSWORD` | A long password for the refresh page. Mark Sensitive. |
+   | `CRON_SECRET` | Any random string (`openssl rand -hex 16`). Vercel sends it to the daily check. |
+   | `NTFY_TOPIC` | Where alerts go (see below). |
+   | `HEALTH_SHORTCODE` | Optional: a reel from your saves for the daily check to look up. |
+
 3. Redeploy.
 
-When the login expires, repeat with a fresh cookies file. Check it any time by opening `/api/video/<shortcode>` on your site: `"type": "video"` means it works, `"reason": "login-expired"` means it needs a new login, `"no-login"` means the variable isn't set.
+**Daily check.** Once a day a Vercel cron looks up `HEALTH_SHORTCODE`. If the login has expired, it alerts you:
+- **Push (no signup):** install the [ntfy](https://ntfy.sh) app, subscribe to a hard-to-guess topic name like `saved-feed-7f3k9q2x`, and set `NTFY_TOPIC` to that name. Anyone who knows the name can read the alerts, which contain no secrets.
+- **Email:** create a free [Resend](https://resend.com) account and set `RESEND_API_KEY` and `ALERT_EMAIL` (the email you signed up with).
 
-Instagram sometimes challenges logins coming from cloud servers. If lookups start failing, log into the spare account in a browser, clear any security prompt, and export fresh cookies.
+**Refreshing the login** takes two minutes: in the spare account's browser profile, log into instagram.com, clear any security prompt, export cookies.txt (as above), then open `https://<your-site>/api/login-refresh`, enter `REFRESH_PASSWORD`, and pick the file. It saves the login and tests it right away. No redeploy needed.
+
+You can also check status any time by opening `/api/video/<shortcode>` on your site: `"type": "video"` means it works, `"login-expired"` means it needs a refresh, `"no-login"` means no login is set up. Visitors never see these problems; they just get embeds until it's fixed.
 
 Not on Vercel? `npm run video-server` runs the same API as a plain Node server (`server/standalone.ts`). Host it anywhere with yt-dlp installed, set `ALLOWED_ORIGINS` to your site's address, and build the app with `VITE_VIDEO_API_URL` pointing at it.
 

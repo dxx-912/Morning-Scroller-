@@ -50,7 +50,9 @@ export function Feed({ categoryId }: { categoryId: string }) {
   const warnedSetup = useRef(false)
   const onSetupIssue = useCallback(
     (reason: string) => {
-      if (warnedSetup.current) return
+      // Setup problems are the site owner's to fix (the deployed site alerts
+      // them), so visitors just get embeds without a message.
+      if (warnedSetup.current || !import.meta.env.DEV) return
       warnedSetup.current = true
       toast(SETUP_MESSAGES[reason] ?? 'Videos unavailable. Showing embeds.')
     },

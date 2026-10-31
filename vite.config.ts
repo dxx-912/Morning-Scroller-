@@ -43,6 +43,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
         navigateFallback: 'index.html',
+        // Server routes (video lookups, the login refresh page) must reach the network.
+        navigateFallbackDenylist: [/^\/api\//],
       },
       // Flip to true to test the service worker during `npm run dev`.
       devOptions: { enabled: false },
