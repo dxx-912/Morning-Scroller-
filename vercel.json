@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [{ "source": "/api/video/:code", "destination": "/api/video?code=:code" }],
+  "functions": {
+    "api/video.py": { "maxDuration": 60 }
+  }
+}

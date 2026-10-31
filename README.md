@@ -43,21 +43,19 @@ It works by having `npm run dev` / `npm run preview` look up each video with [yt
 
 When the login expires (every few weeks), the feed shows a message and falls back to embeds. Repeat steps 3–4.
 
-### Videos on the deployed site
+### Videos on the deployed site (Vercel)
 
-A static deploy has no video server of its own, so by default it uses embeds. To get the player there too, run the video server on a computer that stays on, and give it a public HTTPS address:
+On Vercel, the same lookup runs as a serverless function (`api/video.py`), so the deployed site plays videos without your computer being on and without visitors installing anything. It needs the spare account's login as an environment variable:
 
-1. On that computer (with yt-dlp and `.secrets/ig-cookies.txt` set up as above):
-   ```
-   ALLOWED_ORIGINS=https://your-site.example npm run video-server
-   ```
-   It listens on port 8787 (change with `PORT`). `ALLOWED_ORIGINS` is your deployed site's address; other sites are refused. Check it at http://localhost:8787/health.
-2. Expose it over HTTPS. Your site is HTTPS, so the browser blocks plain-HTTP calls. Pick one:
-   - **Tailscale Funnel** (address stays the same): install Tailscale, then `tailscale funnel --bg 8787`. You get `https://<machine>.<tailnet>.ts.net`.
-   - **Cloudflare quick tunnel** (no account needed, but the address changes every restart): `brew install cloudflared`, then `cloudflared tunnel --url http://localhost:8787`.
-3. In your host's environment variables, set `VITE_VIDEO_API_URL` to that HTTPS address (no trailing slash), then redeploy. It's read at build time.
+1. Copy the login, encoded: `base64 -i .secrets/ig-cookies.txt | pbcopy`
+2. In Vercel → your project → Settings → Environment Variables, add `IG_COOKIES_B64` with that value (Production, and Preview if you want). Mark it Sensitive.
+3. Redeploy.
 
-If the server is off or unreachable, the deployed app falls back to embeds as before.
+When the login expires, repeat with a fresh cookies file. Check it any time by opening `/api/video/<shortcode>` on your site: `"type": "video"` means it works, `"reason": "login-expired"` means it needs a new login, `"no-login"` means the variable isn't set.
+
+Instagram sometimes challenges logins coming from cloud servers. If lookups start failing, log into the spare account in a browser, clear any security prompt, and export fresh cookies.
+
+Not on Vercel? `npm run video-server` runs the same API as a plain Node server (`server/standalone.ts`). Host it anywhere with yt-dlp installed, set `ALLOWED_ORIGINS` to your site's address, and build the app with `VITE_VIDEO_API_URL` pointing at it.
 
 ## Open it on your phone (same Wi‑Fi)
 
@@ -137,7 +135,8 @@ src/
   components/         Media (own video player or embed), Embed, sheets, category picker, import panel, tab bar
   screens/            Onboarding, DayPicker, Feed, Library, Categories, Settings
 server/videoApi.ts    /api/video/:shortcode, backed by yt-dlp (runs inside dev/preview)
-server/standalone.ts  Same API as its own server, for the deployed site
+server/standalone.ts  Same API as its own Node server, for non-Vercel hosts
+api/video.py          Same lookup as a Vercel function (the deployed site uses this)
 tests/                Vitest specs; synthetic exports live in fixtures/
 scripts/              inspect-export.ts
 ```
@@ -148,6 +147,6 @@ scripts/              inspect-export.ts
 
 ## Privacy
 
-Your export and library never leave your device. The only network requests are Instagram's own embeds, loaded from instagram.com when a post is on screen, and, if you set up autoplaying videos, the local server's yt-dlp lookups to Instagram using your spare account's login. `sample-data/` is git-ignored so your real export can't be committed by accident.
+Your export and library never leave your device. The only network requests are Instagram's own embeds, loaded from instagram.com when a post is on screen, and, if you set up autoplaying videos, the video server's yt-dlp lookups to Instagram (from your computer, or from Vercel on the deployed site) using your spare account's login. `sample-data/` is git-ignored so your real export can't be committed by accident.
 
 Not affiliated with Instagram or Meta.
