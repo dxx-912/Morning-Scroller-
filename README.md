@@ -43,7 +43,21 @@ It works by having `npm run dev` / `npm run preview` look up each video with [yt
 
 When the login expires (every few weeks), the feed shows a message and falls back to embeds. Repeat steps 3–4.
 
-A static deploy has no video server, so it always uses embeds.
+### Videos on the deployed site
+
+A static deploy has no video server of its own, so by default it uses embeds. To get the player there too, run the video server on a computer that stays on, and give it a public HTTPS address:
+
+1. On that computer (with yt-dlp and `.secrets/ig-cookies.txt` set up as above):
+   ```
+   ALLOWED_ORIGINS=https://your-site.example npm run video-server
+   ```
+   It listens on port 8787 (change with `PORT`). `ALLOWED_ORIGINS` is your deployed site's address; other sites are refused. Check it at http://localhost:8787/health.
+2. Expose it over HTTPS. Your site is HTTPS, so the browser blocks plain-HTTP calls. Pick one:
+   - **Tailscale Funnel** (address stays the same): install Tailscale, then `tailscale funnel --bg 8787`. You get `https://<machine>.<tailnet>.ts.net`.
+   - **Cloudflare quick tunnel** (no account needed, but the address changes every restart): `brew install cloudflared`, then `cloudflared tunnel --url http://localhost:8787`.
+3. In your host's environment variables, set `VITE_VIDEO_API_URL` to that HTTPS address (no trailing slash), then redeploy. It's read at build time.
+
+If the server is off or unreachable, the deployed app falls back to embeds as before.
 
 ## Open it on your phone (same Wi‑Fi)
 
@@ -122,7 +136,8 @@ src/
   state/              React context for the library, hash router, display settings
   components/         Media (own video player or embed), Embed, sheets, category picker, import panel, tab bar
   screens/            Onboarding, DayPicker, Feed, Library, Categories, Settings
-server/videoApi.ts    Dev/preview-only /api/video/:shortcode, backed by yt-dlp
+server/videoApi.ts    /api/video/:shortcode, backed by yt-dlp (runs inside dev/preview)
+server/standalone.ts  Same API as its own server, for the deployed site
 tests/                Vitest specs; synthetic exports live in fixtures/
 scripts/              inspect-export.ts
 ```

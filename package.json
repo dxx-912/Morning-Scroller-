@@ -9,6 +9,7 @@
     "dev:https": "HTTPS=1 vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
+    "video-server": "tsx server/standalone.ts",
     "typecheck": "tsc -b",
     "test": "vitest run",
     "test:watch": "vitest",

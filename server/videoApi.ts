@@ -12,8 +12,9 @@ import type { Plugin } from 'vite'
  * Anything that isn't a single video (photos, carousels, errors) tells the app
  * to fall back to Instagram's normal embed.
  *
- * Only runs under `npm run dev` / `npm run preview`. A static deploy has no
- * /api, so the app just uses embeds there.
+ * Runs inside `npm run dev` / `npm run preview`, or on its own with
+ * `npm run video-server` (server/standalone.ts) so a deployed copy of the app
+ * can use it too. Without either, the app just uses embeds.
  */
 
 export const COOKIE_FILE = resolve('.secrets/ig-cookies.txt')
@@ -127,10 +128,15 @@ function preferFull(formats: YtFormat[]): YtFormat[] {
   return full.length ? full : formats
 }
 
-async function handle(req: IncomingMessage, res: ServerResponse, next: () => void) {
+export async function handle(req: IncomingMessage, res: ServerResponse, next: () => void) {
   const m = /^\/api\/video\/([^/?#]+)/.exec(req.url ?? '')
   if (!m) return next()
-  const code = decodeURIComponent(m[1])
+  let code: string
+  try {
+    code = decodeURIComponent(m[1])
+  } catch {
+    code = ''
+  }
   res.setHeader('Content-Type', 'application/json')
   res.setHeader('Cache-Control', 'no-store')
   if (!SHORTCODE.test(code)) {
