@@ -253,7 +253,7 @@ def post_json(url, body, headers):
     urllib.request.urlopen(req, timeout=10).close()
 
 
-def send_alert(title, message):
+def send_alert(title, message, click=""):
     sent = []
     topic = os.environ.get("NTFY_TOPIC", "").strip()
     if topic:
@@ -261,7 +261,7 @@ def send_alert(title, message):
             req = urllib.request.Request(
                 f"https://ntfy.sh/{topic}",
                 data=message.encode(),
-                headers={"Title": title, "Priority": "high", "Tags": "warning"},
+                headers={"Title": title, "Priority": "high", "Tags": "warning", **({"Click": click} if click else {})},
             )
             urllib.request.urlopen(req, timeout=10).close()
             sent.append("ntfy")
@@ -308,7 +308,9 @@ def run_check():
             "or isn't a video, set HEALTH_SHORTCODE in Vercel to one that is. Otherwise Instagram "
             f"may be blocking the login: log in, clear any prompt, and paste fresh cookies at {refresh}"
         )
-    return {"ok": False, "shortcode": code, "reason": reason, "alerted": send_alert(title, message)}
+    # Tapping the push notification opens the refresh page.
+    click = refresh if refresh.startswith("https://") else ""
+    return {"ok": False, "shortcode": code, "reason": reason, "alerted": send_alert(title, message, click)}
 
 
 # ---------- refresh page ----------
@@ -402,7 +404,10 @@ class handler(BaseHTTPRequestHandler):
         if not SHORTCODE.match(code):
             return self.send_json(400, {"type": "embed", "reason": "failed"}, "no-store")
         result = lookup(code)
-        if result["type"] == "video":
+        if "fresh" in query:
+            # The app's "Check videos" button: always a live answer.
+            cache = "no-store"
+        elif result["type"] == "video":
             cache = OK_CACHE
         elif result["reason"] in SETUP_REASONS:
             # Setup problems go away as soon as they're fixed; don't cache them.

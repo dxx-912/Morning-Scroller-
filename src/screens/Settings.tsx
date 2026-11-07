@@ -5,6 +5,7 @@ import { IconExternal, IconRestore, IconTrash, Logo } from '../components/icons'
 import { Button, ConfirmSheet } from '../components/Sheet'
 import { useToast } from '../components/Toast'
 import { formatDate, plural } from '../lib/util'
+import { checkLogin, clearVideoCache, REFRESH_URL, type LoginStatus } from '../lib/video'
 import { useLibrary } from '../state/LibraryContext'
 import { useSettings } from '../state/settings'
 
@@ -94,6 +95,8 @@ export function Settings() {
           </div>
         </Section>
 
+        <VideoLogin reels={posts.filter((p) => p.kind !== 'post' && p.status !== 'unavailable').map((p) => p.shortcode)} />
+
         <Section title="Display">
           <Toggle
             label="Show captions"
@@ -149,6 +152,64 @@ export function Settings() {
         }}
       />
     </div>
+  )
+}
+
+const STATUS_TEXT: Record<LoginStatus, string> = {
+  ok: 'Working. Reels play in the app.',
+  'login-expired': 'The Instagram login expired, so reels show as embeds.',
+  'no-login': 'No Instagram login is set up, so reels show as embeds.',
+  'no-ytdlp': "yt-dlp isn't installed on the video server.",
+  'no-server': "There's no video server here, so reels always use embeds.",
+  unknown: "Couldn't tell. Instagram didn't answer clearly. Try again in a minute.",
+}
+
+const FIX_HINT = import.meta.env.DEV
+  ? 'Export a fresh cookies.txt from the spare account, save it as .secrets/ig-cookies.txt, then check again.'
+  : 'Replace the cookies file on the video server, then check again.'
+
+/** Checks whether reels can play in the app, and links to the login refresh page. */
+function VideoLogin({ reels }: { reels: string[] }) {
+  const [status, setStatus] = useState<LoginStatus | null>(null)
+  const [checking, setChecking] = useState(false)
+
+  const check = async () => {
+    setChecking(true)
+    const result = await checkLogin(reels)
+    if (result === 'ok') clearVideoCache()
+    setStatus(result)
+    setChecking(false)
+  }
+
+  const broken = status === 'login-expired' || status === 'no-login'
+
+  return (
+    <Section id="videos" title="Videos" hint="Reels play in the app while the spare account's Instagram login works. When it expires, they fall back to embeds.">
+      {status && (
+        <p className={`mb-3 text-sm ${status === 'ok' ? 'text-ink-300' : 'text-sun-400'}`}>
+          {STATUS_TEXT[status]}
+          {broken && !REFRESH_URL && <span className="mt-1 block text-ink-400">{FIX_HINT}</span>}
+        </p>
+      )}
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" onClick={check} disabled={checking || reels.length === 0}>
+          {checking ? 'Checking…' : 'Check videos'}
+        </Button>
+        {REFRESH_URL && (
+          <a
+            href={REFRESH_URL}
+            target="_blank"
+            rel="noreferrer"
+            className={`inline-flex h-9 items-center gap-2 rounded-full px-3.5 text-sm font-semibold transition active:scale-[0.97] ${
+              broken ? 'bg-sunrise text-ink-950' : 'text-ink-300 hover:bg-ink-800 hover:text-ink-100'
+            }`}
+          >
+            Refresh login <IconExternal size={16} />
+          </a>
+        )}
+      </div>
+      {reels.length === 0 && <p className="mt-2 text-xs text-ink-500">Import some reels first to check.</p>}
+    </Section>
   )
 }
 

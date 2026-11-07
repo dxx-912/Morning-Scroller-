@@ -46,3 +46,40 @@ async function fetchVideo(shortcode: string, fresh: boolean): Promise<VideoSourc
     return { type: 'embed', reason: 'failed' }
   }
 }
+
+/** Where the password-protected login refresh page lives. Only the Vercel deploy has one. */
+export const REFRESH_URL = !import.meta.env.DEV && !API_BASE ? '/api/login-refresh' : null
+
+export type LoginStatus = 'ok' | 'login-expired' | 'no-login' | 'no-ytdlp' | 'no-server' | 'unknown'
+
+/**
+ * Checks whether video lookups work, by looking up a few of your reels live
+ * (skipping every cache). Stops at the first clear answer.
+ */
+export async function checkLogin(shortcodes: string[]): Promise<LoginStatus> {
+  for (const code of shortcodes.slice(0, 3)) {
+    try {
+      const url = `${API_BASE}/api/video/${encodeURIComponent(code)}?fresh=${Date.now()}`
+      const res = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(60_000) })
+      if (!(res.headers.get('content-type') ?? '').includes('application/json')) return 'no-server'
+      const r = (await res.json()) as VideoSource
+      if (r.type === 'video') {
+        cache.delete(code)
+        return 'ok'
+      }
+      if (r.reason === 'login-expired' || r.reason === 'no-login' || r.reason === 'no-ytdlp') {
+        return r.reason
+      }
+      // 'not-video' or 'failed': that reel tells us nothing; try the next one.
+    } catch {
+      // Network blip: try the next one.
+    }
+  }
+  return 'unknown'
+}
+
+/** Forget cached embed fallbacks so the feed asks again after a fix. */
+export function clearVideoCache() {
+  cache.clear()
+  serverMissing = false
+}
