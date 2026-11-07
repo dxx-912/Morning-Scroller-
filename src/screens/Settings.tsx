@@ -5,7 +5,7 @@ import { IconExternal, IconRestore, IconTrash, Logo } from '../components/icons'
 import { Button, ConfirmSheet } from '../components/Sheet'
 import { useToast } from '../components/Toast'
 import { formatDate, plural } from '../lib/util'
-import { checkLogin, clearVideoCache, REFRESH_URL, type LoginStatus } from '../lib/video'
+import { checkLogin, clearVideoCache, REFRESH_URL, VIDEO_LOOKUPS, type LoginStatus } from '../lib/video'
 import { useLibrary } from '../state/LibraryContext'
 import { useSettings } from '../state/settings'
 
@@ -95,12 +95,12 @@ export function Settings() {
           </div>
         </Section>
 
-        <VideoLogin reels={posts.filter((p) => p.kind !== 'post' && p.status !== 'unavailable').map((p) => p.shortcode)} />
+        {VIDEO_LOOKUPS && <VideoLogin reels={posts.filter((p) => p.kind !== 'post' && p.status !== 'unavailable').map((p) => p.shortcode)} />}
 
         <Section title="Display">
           <Toggle
             label="Show captions"
-            hint="Uses Instagram's captioned embed. Posts get taller and are scaled down to fit."
+            hint="Shows Instagram's whole embed with the caption, instead of just the photo or video. Posts get taller and are scaled down to fit."
             checked={settings.captions}
             onChange={(v) => update({ captions: v })}
           />

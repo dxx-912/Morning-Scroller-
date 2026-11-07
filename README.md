@@ -29,7 +29,9 @@ npm run dev
 
 Open http://localhost:5173 and import your export.
 
-## Autoplaying videos (optional)
+## Autoplaying videos (off by default)
+
+> **Off by default.** The account used for these lookups was flagged by Instagram as a bot and temporarily deactivated. The feed now crops Instagram's embeds to just the photo or video instead (see `FramedEmbed` in `src/components/Embed.tsx`), and nothing logs into Instagram. To turn lookups back on anyway, set `VITE_VIDEO_LOOKUPS=1` when building and `VIDEO_LOOKUPS=1` in Vercel.
 
 By default the feed uses Instagram's embeds. Those never autoplay, and Instagram sends some reels (often ones with licensed music) to instagram.com instead of playing them. With this set up, reels and video posts play in the app's own player instead: they autoplay as you scroll, start muted (a browser rule), and one tap on **Tap for sound** keeps sound on. Photos and carousels still use the embed, and anything that can't be fetched falls back to it.
 

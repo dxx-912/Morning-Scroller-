@@ -19,6 +19,8 @@ session lasts longer. Without Redis it's read from the IG_COOKIES_B64 env var.
 Keep pick_video() in step with pickVideo() in server/videoApi.ts.
 
 Env:
+  VIDEO_LOOKUPS             set to 1 to turn lookups on (off by default; they
+                            got the lookup account flagged as a bot)
   IG_COOKIES_B64            starting login (base64 cookies.txt); seeds Redis
   REDIS_URL                 Redis (added when you connect it in Vercel), or
   KV_REST_API_URL/_TOKEN    Upstash's REST pair (UPSTASH_REDIS_REST_* also work)
@@ -193,7 +195,14 @@ def pick_video(info):
     return result
 
 
+def lookups_enabled():
+    # Off unless VIDEO_LOOKUPS=1: logged-in lookups got the account flagged as a bot.
+    return os.environ.get("VIDEO_LOOKUPS", "").strip() == "1"
+
+
 def lookup(shortcode):
+    if not lookups_enabled():
+        return {"type": "embed", "reason": "disabled"}
     cookies, gen = load_cookies()
     if not cookies:
         return {"type": "embed", "reason": "no-login"}
@@ -287,6 +296,8 @@ def site_url():
 
 
 def run_check():
+    if not lookups_enabled():
+        return {"ok": True, "skipped": "lookups disabled"}
     code = os.environ.get("HEALTH_SHORTCODE", "").strip() or DEFAULT_HEALTH_SHORTCODE
     result = lookup(code)
     if result["type"] == "video":
@@ -377,6 +388,8 @@ def refresh_page(body):
         save_manual(text)
     except Exception:
         return 500, page("Couldn't save to storage. Try again.", "bad")
+    if not lookups_enabled():
+        return 200, page("Saved. Video lookups are off (VIDEO_LOOKUPS isn't 1), so it wasn't tested.")
     check = run_check()
     if check["ok"]:
         return 200, page("Saved. Test lookup worked: videos are back.")

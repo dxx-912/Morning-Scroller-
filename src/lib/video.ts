@@ -9,6 +9,13 @@
 
 const API_BASE = (import.meta.env.VITE_VIDEO_API_URL ?? '').replace(/\/$/, '')
 
+/**
+ * Logged-in video lookups are off unless VITE_VIDEO_LOOKUPS=1. Instagram
+ * flagged the lookup account as a bot, so by default every post uses the
+ * official embed and nothing logs into Instagram.
+ */
+export const VIDEO_LOOKUPS = import.meta.env.VITE_VIDEO_LOOKUPS === '1'
+
 export type VideoSource =
   | { type: 'video'; url: string; width?: number; height?: number; poster?: string }
   | { type: 'embed'; reason: string }
@@ -18,6 +25,7 @@ const cache = new Map<string, Promise<VideoSource>>()
 let serverMissing = false
 
 export function getVideo(shortcode: string, fresh = false): Promise<VideoSource> {
+  if (!VIDEO_LOOKUPS) return Promise.resolve({ type: 'embed', reason: 'disabled' })
   if (serverMissing) return Promise.resolve({ type: 'embed', reason: 'no-server' })
   let p = cache.get(shortcode)
   if (!p || fresh) {
@@ -48,7 +56,7 @@ async function fetchVideo(shortcode: string, fresh: boolean): Promise<VideoSourc
 }
 
 /** Where the password-protected login refresh page lives. Only the Vercel deploy has one. */
-export const REFRESH_URL = !import.meta.env.DEV && !API_BASE ? '/api/login-refresh' : null
+export const REFRESH_URL = VIDEO_LOOKUPS && !import.meta.env.DEV && !API_BASE ? '/api/login-refresh' : null
 
 export type LoginStatus = 'ok' | 'login-expired' | 'no-login' | 'no-ytdlp' | 'no-server' | 'unknown'
 

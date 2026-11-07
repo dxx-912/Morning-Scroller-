@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { CategoryAssignSheet } from '../components/CategoryAssign'
-import { type EmbedState } from '../components/Embed'
+import { FramedEmbed, type EmbedState } from '../components/Embed'
 import { Media } from '../components/Media'
 import { IconChevronDown, IconChevronUp, IconExternal, IconFlag, IconShuffle, IconTag } from '../components/icons'
 import { Button } from '../components/Sheet'
 import { useToast } from '../components/Toast'
 import { ALL, UNCATEGORIZED, buildFeed } from '../lib/feed'
 import { useElementSize } from '../lib/hooks'
-import { getVideo } from '../lib/video'
+import { getVideo, VIDEO_LOOKUPS } from '../lib/video'
 import type { Category, Post } from '../lib/types'
 import { formatDate, plural } from '../lib/util'
 import { useLibrary } from '../state/LibraryContext'
@@ -83,6 +83,7 @@ export function Feed({ categoryId }: { categoryId: string }) {
   }, [current, order, savePosition])
 
   useEffect(() => {
+    if (!VIDEO_LOOKUPS) return
     for (const code of order.slice(current + 1, current + 1 + PREFETCH_AHEAD)) void getVideo(code)
   }, [current, order])
 
@@ -137,7 +138,9 @@ export function Feed({ categoryId }: { categoryId: string }) {
 
   const label = categoryLabel(categoryId, categories)
   const embedW = Math.max(0, width - 24)
-  const embedH = Math.max(0, height - HEADER_H - ACTIONS_H - 12)
+  // Framed posts carry their buttons on top, so they get the action bar's space too.
+  const framed = !captions && !VIDEO_LOOKUPS
+  const embedH = Math.max(0, height - HEADER_H - (framed ? 0 : ACTIONS_H) - 12)
 
   return (
     <div className="relative h-full min-h-0 flex-1">
@@ -186,6 +189,7 @@ export function Feed({ categoryId }: { categoryId: string }) {
                     maxWidth={embedW}
                     maxHeight={embedH}
                     captioned={captions}
+                    framed={framed}
                     active={i === current}
                     muted={muted}
                     onMutedChange={setMuted}
@@ -227,6 +231,8 @@ interface FeedItemProps {
   maxWidth: number
   maxHeight: number
   captioned: boolean
+  /** Crop the embed to just the media, with the details drawn on top. */
+  framed: boolean
   active: boolean
   muted: boolean
   onMutedChange: (muted: boolean) => void
@@ -236,8 +242,21 @@ interface FeedItemProps {
   onFlag: () => void
 }
 
-function FeedItem({ post, categories, maxWidth, maxHeight, captioned, active, muted, onMutedChange, onSetupIssue, onState, onTag, onFlag }: FeedItemProps) {
+function FeedItem({ post, categories, maxWidth, maxHeight, captioned, framed, active, muted, onMutedChange, onSetupIssue, onState, onTag, onFlag }: FeedItemProps) {
   const cats = categories.filter((c) => post.categoryIds.includes(c.id))
+
+  if (framed) {
+    return (
+      <FramedEmbed
+        post={post}
+        maxWidth={maxWidth}
+        maxHeight={maxHeight}
+        onState={onState}
+        overlay={<FramedOverlay post={post} cats={cats} onTag={onTag} onFlag={onFlag} />}
+      />
+    )
+  }
+
   // The wrapper shrinks to the (scaled) embed, so the action bar lines up with it.
   return (
     <div className="flex w-fit max-w-full flex-col" style={{ minWidth: Math.min(maxWidth, 300) }}>
@@ -282,6 +301,53 @@ function FeedItem({ post, categories, maxWidth, maxHeight, captioned, active, mu
         </ActionButton>
       </div>
     </div>
+  )
+}
+
+/**
+ * Account, categories and buttons along the bottom of a framed post, like
+ * Instagram's own feed. Only the buttons take taps; the rest passes through
+ * to the embed, so tapping anywhere on a reel still plays it.
+ */
+function FramedOverlay({ post, cats, onTag, onFlag }: { post: Post; cats: Category[]; onTag: () => void; onFlag: () => void }) {
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end gap-2 bg-gradient-to-t from-black/75 via-black/35 to-transparent px-3 pt-12 pb-3 text-white">
+      <div className="min-w-0 flex-1 pb-1 [text-shadow:0_1px_3px_rgb(0_0_0/0.6)]">
+        <p className="truncate text-[15px] font-semibold">{post.author ? `@${post.author}` : post.kind === 'post' ? 'Post' : 'Reel'}</p>
+        <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-white/80">
+          {cats.length > 0 ? (
+            cats.slice(0, 3).map((c) => (
+              <span key={c.id} className="inline-flex items-center gap-1">
+                <span className="size-1.5 rounded-full" style={{ background: `hsl(${c.hue} 85% 65%)` }} />
+                {c.name}
+              </span>
+            ))
+          ) : (
+            <span>Saved {formatDate(post.savedAt)}</span>
+          )}
+          {cats.length > 3 && <span>+{cats.length - 3}</span>}
+        </p>
+      </div>
+      <div className="pointer-events-auto flex shrink-0 items-center">
+        <OverlayButton label="Categories" onClick={onTag}>
+          <IconTag />
+        </OverlayButton>
+        <a href={post.url} target="_blank" rel="noreferrer" aria-label="Open in Instagram" title="Open in Instagram" className="grid size-10 place-items-center rounded-full text-white/90 transition hover:bg-white/15 active:scale-90">
+          <IconExternal />
+        </a>
+        <OverlayButton label="Mark unavailable" onClick={onFlag}>
+          <IconFlag />
+        </OverlayButton>
+      </div>
+    </div>
+  )
+}
+
+function OverlayButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button onClick={onClick} aria-label={label} title={label} className="grid size-10 place-items-center rounded-full text-white/90 transition hover:bg-white/15 active:scale-90">
+      {children}
+    </button>
   )
 }
 
