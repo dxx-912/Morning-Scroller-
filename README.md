@@ -13,7 +13,8 @@ Everything lives in your browser (IndexedDB). There's no backend and no account.
 - **Import your Instagram export.** Drop the `.zip`, the unzipped folder, or just `saved_posts.json` / `saved_collections.json`. It handles the old and new export formats, duplicates, `/p/`, `/reel/`, `/reels/` and `/tv/` links, and Instagram's garbled emoji/accents. Media files in the zip are ignored.
 - **Collections become categories.** You can create, rename and delete categories, and put any post in several.
 - **Daily feed.** Full-height snap scrolling. Only the current post and its neighbors are mounted. Reopening resumes where you left off in each category.
-- **Dead links handled.** A deleted or private post is detected and skipped automatically. You can also flag one yourself. Review, restore or remove them under **Settings → Unavailable posts**.
+- **Dead links handled.** While you scroll, the app quietly checks the next 30 posts in the background and drops deleted or private ones before you reach them. To avoid mistaking Instagram's rate-limiting for deleted posts, a post is only hidden after failing twice, at least 20 minutes apart, and the check stops for the session if several fail in a row. You can also flag a post yourself. Review, restore or remove them under **Settings → Unavailable posts**.
+- **Reels that only play on Instagram.** Some reels (often ones with licensed music) show "Watch on Instagram" instead of playing. The app can't see that until you tap one: if a tap sends you to Instagram, that reel is marked and skipped from then on. To catch them all up front, run `npm run scan` (below).
 - **Library.** Browse everything, filter by category or type, search by account, multi-select and bulk-assign categories.
 - **Backup.** Export your whole library (posts, categories, flags) as one JSON file and import it on another device, either merged or replacing.
 - **PWA.** Installable, works offline (the app shell; embeds need a connection).
@@ -130,7 +131,19 @@ It prints the structure of each saved-posts file and what the parser extracts: p
 | `npm run preview` | Serve the production build on localhost:4173 and your LAN |
 | `npm test` | Parser, shuffle, feed and backup tests (Vitest) |
 | `npm run inspect` | Inspect an Instagram export (see above) |
+| `npm run scan -- <file>` | Find reels that only play on Instagram (see below) |
 | `npm run icons` | Regenerate PWA icons from `public/favicon.svg` |
+
+### Finding reels that only play on Instagram
+
+```bash
+npm run scan -- ~/Downloads/saved-feed-backup.json   # a backup from Settings, or
+npm run scan -- ~/Downloads/instagram-export.zip     # your Instagram export (zip or folder)
+```
+
+Instagram decides inside its embed whether a reel plays there or shows "Watch on Instagram", and the app isn't allowed to look inside it. A page on instagram.com can, so this opens your installed Google Chrome in the background (a fresh profile, not logged into anything), loads each embed from instagram.com and checks. It goes in small batches and backs off if Instagram starts limiting requests. A few minutes per 100 posts.
+
+It writes `saved-feed-watch-only-<date>.json`. On your phone: **Settings → Restore from a backup file →** pick it **→ Merge with my library**. Run it again after importing new saves. Deleted posts are only counted, not included: the app finds those itself.
 
 ## Deploying later
 

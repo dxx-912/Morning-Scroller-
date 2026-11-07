@@ -155,7 +155,13 @@ export function mergeSnapshots(base: LibrarySnapshot, incoming: LibrarySnapshot)
       posts.set(p.shortcode, p)
       continue
     }
-    const newer = (p.statusAt ?? 0) > (cur.statusAt ?? 0) ? p : cur
+    // "Only plays on Instagram" can't be seen by loading the embed, so a later
+    // "it loaded fine" mustn't undo it. Otherwise the newer status wins.
+    const watchOnly = (q: Post) => q.status === 'unavailable' && q.unavailableReason === 'watch-only'
+    const newer =
+      watchOnly(p) && cur.status !== 'unavailable' ? p
+      : watchOnly(cur) && p.status !== 'unavailable' ? cur
+      : (p.statusAt ?? 0) > (cur.statusAt ?? 0) ? p : cur
     posts.set(p.shortcode, {
       ...cur,
       author: cur.author ?? p.author,

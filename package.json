@@ -14,7 +14,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "inspect": "tsx scripts/inspect-export.ts",
-    "icons": "pwa-assets-generator"
+    "icons": "pwa-assets-generator",
+    "scan": "tsx scripts/scan-embeds.ts"
   },
   "dependencies": {
     "fflate": "^0.8.3",
@@ -31,6 +32,7 @@
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "fake-indexeddb": "^6.2.6",
+    "playwright-core": "^1.65.0",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",

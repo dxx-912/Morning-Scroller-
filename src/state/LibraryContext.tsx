@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import * as db from '../lib/db'
+import { applyCheck } from '../lib/check'
 import { ALL } from '../lib/feed'
 import { makeBackup, mergeInstagramImport, mergeSnapshots, type Backup, type ImportStats } from '../lib/library'
 import { todayKey } from '../lib/shuffle'
@@ -35,6 +36,8 @@ interface LibraryValue {
   /** `reason` only applies to 'unavailable'; any other status clears it. */
   setStatus(code: string, status: PostStatus, reason?: UnavailableReason): Promise<void>
   deletePosts(codes: string[]): Promise<void>
+  /** Save a background check result. Resolves to the post's status afterwards. */
+  recordCheck(code: string, ok: boolean): Promise<PostStatus | null>
 }
 
 const Ctx = createContext<LibraryValue | null>(null)
@@ -199,7 +202,15 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
         // Watch-only embeds load fine, they just don't play. A successful
         // load mustn't undo that; only an explicit restore ('unknown') does.
         if (status === 'ok' && p.unavailableReason === 'watch-only') return
-        await patchPosts([{ ...p, status, statusAt: Date.now(), unavailableReason: why }])
+        await patchPosts([{ ...p, status, statusAt: Date.now(), unavailableReason: why, checkFailedAt: undefined }])
+      },
+
+      async recordCheck(code, ok) {
+        const p = libRef.current.posts.find((x) => x.shortcode === code)
+        if (!p) return null
+        const next = applyCheck(p, ok, Date.now())
+        if (next) await patchPosts([next])
+        return (next ?? p).status
       },
 
       async deletePosts(codes) {

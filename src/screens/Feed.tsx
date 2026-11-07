@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { BackgroundChecker } from '../components/BackgroundChecker'
 import { CategoryAssignSheet } from '../components/CategoryAssign'
 import { FramedEmbed, type EmbedState } from '../components/Embed'
 import { Media } from '../components/Media'
 import { IconChevronDown, IconChevronUp, IconExternal, IconFlag, IconShuffle, IconTag } from '../components/icons'
 import { Button } from '../components/Sheet'
 import { useToast } from '../components/Toast'
+import { needsCheck } from '../lib/check'
 import { ALL, UNCATEGORIZED, buildFeed } from '../lib/feed'
 import { useElementSize } from '../lib/hooks'
 import { getVideo, VIDEO_LOOKUPS } from '../lib/video'
@@ -20,6 +22,8 @@ const ACTIONS_H = 64
 const WINDOW = 1
 /** A tap on a reel followed by the app leaving this soon after means the reel opened Instagram. */
 const TAP_TO_LEAVE_MS = 2000
+/** Check this many posts ahead of you in the background for deleted ones. */
+const CHECK_AHEAD = 30
 /** Look up video links this many posts ahead so they're ready when you get there. */
 const PREFETCH_AHEAD = 3
 
@@ -36,7 +40,7 @@ export function categoryLabel(id: string, categories: Category[]): string {
 }
 
 export function Feed({ categoryId }: { categoryId: string }) {
-  const { posts, byCode, categories, today, resumeAt, savePosition, setStatus, chooseCategory } = useLibrary()
+  const { posts, byCode, categories, today, resumeAt, savePosition, setStatus, recordCheck, chooseCategory } = useLibrary()
   const [{ captions }] = useSettings()
   const toast = useToast()
 
@@ -197,6 +201,30 @@ export function Feed({ categoryId }: { categoryId: string }) {
     }
   }, [])
 
+  // Check posts ahead of you in the background, so deleted ones drop out
+  // before you reach them. The current post and its neighbors are already
+  // loading in the feed itself.
+  const checkCandidates = useMemo(() => {
+    const now = Date.now()
+    return order
+      .slice(current + WINDOW + 1, current + WINDOW + 1 + CHECK_AHEAD)
+      .map((code) => byCode.get(code))
+      .filter((p): p is Post => !!p && needsCheck(p, now))
+  }, [order, current, byCode])
+
+  const onChecked = useCallback(
+    async (code: string, ok: boolean) => {
+      const status = await recordCheck(code, ok)
+      if (status !== 'unavailable') return
+      // Drop it if it's still ahead of you; never yank the post you're on.
+      setOrder((o) => {
+        const i = o.indexOf(code)
+        return i > currentRef.current ? o.filter((c) => c !== code) : o
+      })
+    },
+    [recordCheck],
+  )
+
   const flag = (code: string) => {
     setStatus(code, 'unavailable')
     toast('Marked as unavailable', { label: 'Undo', run: () => setStatus(code, 'unknown') })
@@ -288,6 +316,7 @@ export function Feed({ categoryId }: { categoryId: string }) {
       )}
 
       <CategoryAssignSheet codes={tagging ? [tagging] : []} open={!!tagging} onClose={() => setTagging(null)} />
+      <BackgroundChecker candidates={checkCandidates} onResult={onChecked} />
     </div>
   )
 }

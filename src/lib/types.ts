@@ -26,6 +26,12 @@ export interface Post {
    * licensed music).
    */
   unavailableReason?: UnavailableReason
+  /**
+   * When a background check last failed to load this post. One failure is
+   * only a warning: Instagram shows the same "broken link" page when it's
+   * rate-limiting. A second failure later marks it unavailable.
+   */
+  checkFailedAt?: number
   /** When this post entered the app (ms). */
   addedAt: number
 }
