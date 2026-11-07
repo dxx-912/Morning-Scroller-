@@ -136,6 +136,7 @@ export function readBackup(json: unknown): LibrarySnapshot {
       categoryIds: Array.isArray(p.categoryIds) ? [...new Set(p.categoryIds.filter((id) => catIds.has(id)))] : [],
       status: STATUSES.includes(p.status) ? p.status : 'unknown',
       statusAt: typeof p.statusAt === 'number' ? p.statusAt : undefined,
+      unavailableReason: p.unavailableReason === 'watch-only' ? 'watch-only' : undefined,
       addedAt: typeof p.addedAt === 'number' ? p.addedAt : Date.now(),
     })
   }
@@ -162,6 +163,7 @@ export function mergeSnapshots(base: LibrarySnapshot, incoming: LibrarySnapshot)
       categoryIds: [...new Set([...cur.categoryIds, ...p.categoryIds])],
       status: newer.status,
       statusAt: newer.statusAt,
+      unavailableReason: newer.unavailableReason,
     })
   }
   return { categories: [...categories.values()], posts: [...posts.values()] }

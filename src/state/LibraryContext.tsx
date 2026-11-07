@@ -3,7 +3,7 @@ import * as db from '../lib/db'
 import { ALL } from '../lib/feed'
 import { makeBackup, mergeInstagramImport, mergeSnapshots, type Backup, type ImportStats } from '../lib/library'
 import { todayKey } from '../lib/shuffle'
-import type { Category, LibrarySnapshot, ParseResult, Post, PostStatus } from '../lib/types'
+import type { Category, LibrarySnapshot, ParseResult, Post, PostStatus, UnavailableReason } from '../lib/types'
 import { hueFor, makeId } from '../lib/util'
 
 interface LibraryValue {
@@ -32,7 +32,8 @@ interface LibraryValue {
 
   /** Add and/or remove categories on many posts at once. */
   updatePostCategories(codes: string[], add: string[], remove: string[]): Promise<void>
-  setStatus(code: string, status: PostStatus): Promise<void>
+  /** `reason` only applies to 'unavailable'; any other status clears it. */
+  setStatus(code: string, status: PostStatus, reason?: UnavailableReason): Promise<void>
   deletePosts(codes: string[]): Promise<void>
 }
 
@@ -191,10 +192,14 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
         await patchPosts(changed)
       },
 
-      async setStatus(code, status) {
+      async setStatus(code, status, reason) {
         const p = libRef.current.posts.find((x) => x.shortcode === code)
-        if (!p || p.status === status) return
-        await patchPosts([{ ...p, status, statusAt: Date.now() }])
+        const why = status === 'unavailable' ? reason : undefined
+        if (!p || (p.status === status && p.unavailableReason === why)) return
+        // Watch-only embeds load fine, they just don't play. A successful
+        // load mustn't undo that; only an explicit restore ('unknown') does.
+        if (status === 'ok' && p.unavailableReason === 'watch-only') return
+        await patchPosts([{ ...p, status, statusAt: Date.now(), unavailableReason: why }])
       },
 
       async deletePosts(codes) {

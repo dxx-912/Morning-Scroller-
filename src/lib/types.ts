@@ -3,6 +3,8 @@ export type PostKind = 'post' | 'reel' | 'igtv'
 /** Whether the Instagram embed is known to work. */
 export type PostStatus = 'unknown' | 'ok' | 'unavailable'
 
+export type UnavailableReason = 'watch-only'
+
 export interface Post {
   /** Instagram shortcode, e.g. "C8x1AbCdEfG". Primary key. */
   shortcode: string
@@ -18,6 +20,12 @@ export interface Post {
   status: PostStatus
   /** When status last changed (ms). */
   statusAt?: number
+  /**
+   * Why it's unavailable, when we know. 'watch-only': Instagram won't play it
+   * in the embed and sends you to Instagram instead (often reels with
+   * licensed music).
+   */
+  unavailableReason?: UnavailableReason
   /** When this post entered the app (ms). */
   addedAt: number
 }

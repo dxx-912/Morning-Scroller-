@@ -78,4 +78,24 @@ describe('backups', () => {
     expect(p.categoryIds).toContain('x')
     expect(p.status).toBe('unavailable')
   })
+
+  it('keeps the watch-only reason through a backup and a merge', () => {
+    const marked: LibrarySnapshot = {
+      categories: [],
+      posts: [{ ...lib.posts[0], status: 'unavailable', statusAt: 99, unavailableReason: 'watch-only' }],
+    }
+    const restored = readBackup(JSON.parse(JSON.stringify(makeBackup(marked))))
+    expect(restored.posts[0].unavailableReason).toBe('watch-only')
+
+    const out = mergeSnapshots(lib, restored)
+    const p = out.posts.find((q) => q.shortcode === lib.posts[0].shortcode)!
+    expect(p).toMatchObject({ status: 'unavailable', unavailableReason: 'watch-only' })
+    // Categories on this device survive.
+    expect(p.categoryIds).toEqual(lib.posts[0].categoryIds)
+  })
+
+  it('ignores unknown reasons in a backup', () => {
+    const out = readBackup({ app: 'saved-feed', version: 1, categories: [], posts: [{ shortcode: 'GoodCode1', status: 'unavailable', unavailableReason: 'nope' }] })
+    expect(out.posts[0].unavailableReason).toBeUndefined()
+  })
 })

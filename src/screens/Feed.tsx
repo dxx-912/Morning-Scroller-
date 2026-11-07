@@ -18,6 +18,8 @@ const HEADER_H = 52
 const ACTIONS_H = 64
 /** Mount the current embed plus this many neighbors on each side. */
 const WINDOW = 1
+/** A tap on a reel followed by the app leaving this soon after means the reel opened Instagram. */
+const TAP_TO_LEAVE_MS = 2000
 /** Look up video links this many posts ahead so they're ready when you get there. */
 const PREFETCH_AHEAD = 3
 
@@ -129,6 +131,71 @@ export function Feed({ categoryId }: { categoryId: string }) {
     },
     [setStatus, toast, go],
   )
+
+  // Some reels won't play in the embed: tapping them opens Instagram instead
+  // (often reels with licensed music). The app can't see inside the embed,
+  // but it can see what happens next: a tap on a reel, then the app going to
+  // the background. That reel gets marked and skipped from then on.
+  // Saving the mark updates the library, which hands this screen new
+  // callbacks. Read them through refs so the listeners below (and what they
+  // remember) live for the whole visit instead of restarting.
+  const orderRef = useRef(order)
+  orderRef.current = order
+  const latest = useRef({ setStatus, toast, go })
+  latest.current = { setStatus, toast, go }
+  useEffect(() => {
+    let tapped: { code: string; at: number } | null = null
+    let leftFor: string | null = null
+
+    const markWatchOnly = (code: string) => latest.current.setStatus(code, 'unavailable', 'watch-only')
+
+    // Tapping inside an embed moves focus into its iframe. The window's blur
+    // event isn't always fired for that, so also watch for focus changing.
+    // Photos open Instagram when tapped anyway, so only reels count.
+    // Start from whatever already has focus, so an old tap doesn't count as new.
+    let focused: Element | null = document.activeElement
+    const checkFocus = () => {
+      const el = document.activeElement
+      if (el === focused) return
+      focused = el
+      if (el instanceof HTMLIFrameElement && el.dataset.code && el.dataset.kind !== 'post') {
+        tapped = { code: el.dataset.code, at: Date.now() }
+      }
+    }
+    const onBlur = () => setTimeout(checkFocus, 0)
+    const poll = setInterval(() => {
+      if (document.visibilityState === 'visible') checkFocus()
+    }, 250)
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        checkFocus()
+        if (tapped && Date.now() - tapped.at < TAP_TO_LEAVE_MS) {
+          leftFor = tapped.code
+          // Save now too, in case the app is closed while in Instagram.
+          void markWatchOnly(leftFor)
+        }
+        tapped = null
+        return
+      }
+      if (!leftFor) return
+      const code = leftFor
+      leftFor = null
+      void markWatchOnly(code)
+      const { toast, setStatus, go } = latest.current
+      toast('That reel only plays on Instagram, so it’s off your feed now', { label: 'Undo', run: () => setStatus(code, 'unknown') })
+      const i = orderRef.current.indexOf(code)
+      if (i === currentRef.current) go(i + 1)
+    }
+
+    window.addEventListener('blur', onBlur)
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      clearInterval(poll)
+      window.removeEventListener('blur', onBlur)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [])
 
   const flag = (code: string) => {
     setStatus(code, 'unavailable')

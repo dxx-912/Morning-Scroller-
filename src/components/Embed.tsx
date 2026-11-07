@@ -152,6 +152,8 @@ export function Embed({ post, maxWidth, maxHeight, captioned = false, onState }:
           ref={frame}
           onLoad={onLoad}
           src={embedUrl(post.shortcode, post.kind, captioned)}
+          data-code={post.shortcode}
+          data-kind={post.kind}
           title={`Instagram ${post.kind} by ${post.author ?? 'unknown'}`}
           width={width}
           height={naturalHeight}
@@ -267,6 +269,8 @@ export function FramedEmbed({ post, maxWidth, maxHeight, onState, overlay }: Fra
         ref={frame}
         onLoad={onLoad}
         src={embedUrl(post.shortcode, post.kind, false)}
+        data-code={post.shortcode}
+        data-kind={post.kind}
         title={`Instagram ${post.kind} by ${post.author ?? 'unknown'}`}
         width={frameW}
         height={frameH}

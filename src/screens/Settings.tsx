@@ -42,7 +42,7 @@ export function Settings() {
           id="unavailable"
           className={dead.length ? 'order-first' : undefined}
           title={`Unavailable posts${dead.length ? ` (${dead.length})` : ''}`}
-          hint="Posts whose embed failed to load (deleted or private) or that you flagged. They're skipped in the feed."
+          hint="Posts that are deleted or private, reels that only play on Instagram, and posts you flagged. They're skipped in the feed."
         >
           {dead.length === 0 ? (
             <p className="text-sm text-ink-500">None. Every post has loaded fine so far.</p>
@@ -54,7 +54,7 @@ export function Settings() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{p.author ? `@${p.author}` : p.shortcode}</p>
                       <p className="text-xs text-ink-500">
-                        {p.kind} · saved {formatDate(p.savedAt)}
+                        {p.unavailableReason === 'watch-only' ? 'Only plays on Instagram' : `${p.kind} · saved ${formatDate(p.savedAt)}`}
                       </p>
                     </div>
                     <a href={p.url} target="_blank" rel="noreferrer" className="rounded-full p-2 text-ink-400 hover:bg-ink-800 hover:text-ink-100" aria-label="Open in Instagram">
@@ -77,8 +77,10 @@ export function Settings() {
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    dead.forEach((p) => setStatus(p.shortcode, 'unknown'))
-                    toast(`${plural(dead.length, 'post')} will be re-checked in the feed`)
+                    // Watch-only reels load fine; re-checking can't tell, so leave them.
+                    const recheck = dead.filter((p) => p.unavailableReason !== 'watch-only')
+                    recheck.forEach((p) => setStatus(p.shortcode, 'unknown'))
+                    toast(`${plural(recheck.length, 'post')} will be re-checked in the feed`)
                   }}
                 >
                   Re-check all
