@@ -7,11 +7,13 @@ import { useToast } from '../components/Toast'
 import { formatDate, plural } from '../lib/util'
 import { checkLogin, clearVideoCache, REFRESH_URL, VIDEO_LOOKUPS, type LoginStatus } from '../lib/video'
 import { useLibrary } from '../state/LibraryContext'
+import { useOnboarding } from '../state/onboarding'
 import { useSettings } from '../state/settings'
 
 export function Settings() {
   const { posts, categories, setStatus, deletePosts, resetAll } = useLibrary()
   const [settings, update] = useSettings()
+  const { replayIntro } = useOnboarding()
   const toast = useToast()
   const [confirmPurge, setConfirmPurge] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
@@ -116,6 +118,12 @@ export function Settings() {
           </p>
           <Button variant="danger" size="sm" className="mt-3" onClick={() => setConfirmReset(true)} disabled={posts.length === 0 && categories.length === 0}>
             Erase everything on this device
+          </Button>
+        </Section>
+
+        <Section title="How Saved Feed works">
+          <Button size="sm" onClick={replayIntro}>
+            Show the intro again
           </Button>
         </Section>
 

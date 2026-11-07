@@ -3,7 +3,7 @@ import { BackgroundChecker } from '../components/BackgroundChecker'
 import { CategoryAssignSheet } from '../components/CategoryAssign'
 import { FramedEmbed, type EmbedState } from '../components/Embed'
 import { Media } from '../components/Media'
-import { IconChevronDown, IconChevronUp, IconExternal, IconFlag, IconShuffle, IconTag } from '../components/icons'
+import { IconChevronDown, IconChevronUp, IconExternal, IconFlag, IconPlay, IconShuffle, IconTag } from '../components/icons'
 import { Button } from '../components/Sheet'
 import { useToast } from '../components/Toast'
 import { needsCheck } from '../lib/check'
@@ -14,6 +14,7 @@ import type { Category, Post } from '../lib/types'
 import { formatDate, plural } from '../lib/util'
 import { useLibrary } from '../state/LibraryContext'
 import { navigate } from '../state/router'
+import { useOnboarding } from '../state/onboarding'
 import { useSettings } from '../state/settings'
 
 const HEADER_H = 52
@@ -42,6 +43,7 @@ export function categoryLabel(id: string, categories: Category[]): string {
 export function Feed({ categoryId }: { categoryId: string }) {
   const { posts, byCode, categories, today, resumeAt, savePosition, setStatus, recordCheck, chooseCategory } = useLibrary()
   const [{ captions }] = useSettings()
+  const { feedTipSeen, dismissFeedTip } = useOnboarding()
   const toast = useToast()
 
   // The session's order is fixed when the feed opens (seeded by day + category).
@@ -317,6 +319,7 @@ export function Feed({ categoryId }: { categoryId: string }) {
 
       <CategoryAssignSheet codes={tagging ? [tagging] : []} open={!!tagging} onClose={() => setTagging(null)} />
       <BackgroundChecker candidates={checkCandidates} onResult={onChecked} />
+      {!feedTipSeen && order.length > 0 && <FeedTip onDismiss={dismissFeedTip} />}
     </div>
   )
 }
@@ -444,6 +447,33 @@ function OverlayButton({ label, onClick, children }: { label: string; onClick: (
     <button onClick={onClick} aria-label={label} title={label} className="grid size-10 place-items-center rounded-full text-white/90 transition hover:bg-white/15 active:scale-90">
       {children}
     </button>
+  )
+}
+
+/** Shown on the first visit to the feed only (once per browser). */
+function FeedTip({ onDismiss }: { onDismiss: () => void }) {
+  const tips = [
+    { icon: <IconChevronUp size={18} />, text: 'Swipe up for the next post' },
+    { icon: <IconPlay size={18} />, text: 'Tap a reel to play it' },
+    { icon: <IconTag size={18} />, text: 'Tag it into categories' },
+    { icon: <IconFlag size={18} />, text: 'Flag one that won’t load' },
+  ]
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-4 z-30 flex justify-center px-4">
+      <div className="pointer-events-auto w-full max-w-sm animate-fade-in rounded-3xl border border-ink-700 bg-ink-900/95 p-4 shadow-2xl backdrop-blur" role="dialog" aria-label="How the feed works">
+        <ul className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+          {tips.map((t) => (
+            <li key={t.text} className="flex items-center gap-2 text-[13px] leading-snug text-ink-300">
+              <span className="shrink-0 text-sun-400">{t.icon}</span>
+              {t.text}
+            </li>
+          ))}
+        </ul>
+        <Button variant="primary" size="sm" className="mt-4 w-full" onClick={onDismiss}>
+          Got it
+        </Button>
+      </div>
+    </div>
   )
 }
 

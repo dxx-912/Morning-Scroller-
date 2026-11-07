@@ -10,6 +10,7 @@ Everything lives in your browser (IndexedDB). There's no backend and no account.
 
 ## Features
 
+- **One-time intro.** Six short swipeable screens on first launch (why it's useful, how it works, what it does on its own, privacy), then a one-time tip the first time you open the feed. There are no accounts, so "once" means once per browser: it's recorded in both localStorage and IndexedDB, each repairs the other if cleared, and anyone who already has a library skips it. Replay it from **Settings → Show the intro again**. Bump `INTRO_VERSION` in `src/state/onboarding.ts` to show a changed intro to everyone.
 - **Import your Instagram export.** Drop the `.zip`, the unzipped folder, or just `saved_posts.json` / `saved_collections.json`. It handles the old and new export formats, duplicates, `/p/`, `/reel/`, `/reels/` and `/tv/` links, and Instagram's garbled emoji/accents. Media files in the zip are ignored.
 - **Collections become categories.** You can create, rename and delete categories, and put any post in several.
 - **Daily feed.** Full-height snap scrolling. Only the current post and its neighbors are mounted. Reopening resumes where you left off in each category.
