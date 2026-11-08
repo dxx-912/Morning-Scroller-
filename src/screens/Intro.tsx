@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { BackupImportButton } from '../components/BackupControls'
+import { InstallGuide } from '../components/InstallGuide'
 import { IconCheck, IconExternal, IconFlag, IconPlay, IconShuffle, IconTag, IconUpload, Logo } from '../components/icons'
 import { Button } from '../components/Sheet'
+import { detectPlatform, type Platform } from '../lib/platform'
 import { cx } from '../lib/util'
 
 /**
@@ -59,6 +61,12 @@ export function Intro({ onDone, replay = false }: { onDone: () => void; replay?:
   const track = useRef<HTMLDivElement>(null)
   const [step, setStep] = useState(0)
   const last = step === SLIDES.length - 1
+  // After the slides: how to put it on the Home Screen. Not when it's already
+  // there, and not when replaying from Settings (Settings has its own guide).
+  const platform = useMemo(() => detectPlatform(), [])
+  const withInstall = !replay && platform !== 'installed'
+  const [phase, setPhase] = useState<'slides' | 'install'>('slides')
+  const finishSlides = useCallback(() => (withInstall ? setPhase('install') : onDone()), [withInstall, onDone])
 
   const goTo = useCallback((i: number) => {
     const el = track.current
@@ -76,18 +84,21 @@ export function Intro({ onDone, replay = false }: { onDone: () => void; replay?:
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') goTo(step + 1)
       else if (e.key === 'ArrowLeft') goTo(step - 1)
-      else if (e.key === 'Escape') onDone()
+      else if (e.key === 'Escape') finishSlides()
     }
+    if (phase !== 'slides') return
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [step, goTo, onDone])
+  }, [step, goTo, finishSlides, phase])
+
+  if (phase === 'install') return <InstallStep platform={platform} onDone={onDone} />
 
   return (
     <div className="pt-safe pb-safe flex h-full flex-col bg-ink-950" role="region" aria-roledescription="carousel" aria-label="How Saved Feed works">
       <div className="mx-auto flex w-full max-w-md items-center justify-between px-5 pt-3">
         <Logo size={28} />
         {!last && (
-          <button onClick={onDone} className="rounded-full px-3 py-1.5 text-sm font-semibold text-ink-400 hover:bg-ink-800 hover:text-ink-100">
+          <button onClick={finishSlides} className="rounded-full px-3 py-1.5 text-sm font-semibold text-ink-400 hover:bg-ink-800 hover:text-ink-100">
             {replay ? 'Close' : 'Skip'}
           </button>
         )}
@@ -136,9 +147,66 @@ export function Intro({ onDone, replay = false }: { onDone: () => void; replay?:
             Back
           </Button>
         )}
-        <Button variant="primary" onClick={() => (last ? onDone() : goTo(step + 1))}>
-          {last ? (replay ? 'Done' : 'Import my saves') : 'Next'}
+        <Button variant="primary" onClick={() => (last ? finishSlides() : goTo(step + 1))}>
+          {last ? (replay ? 'Done' : withInstall ? 'Next' : 'Import my saves') : 'Next'}
         </Button>
+      </div>
+    </div>
+  )
+}
+
+// ---------- the last step: put it on the Home Screen ----------
+
+const INSTALL_COPY: Record<Platform, { title: string; body: string; done?: string; skip: string }> = {
+  'ios-safari': { title: 'Put it on your Home Screen', body: 'It opens full-screen, like an app. Takes 20 seconds.', done: 'I’ve added it', skip: 'Not now' },
+  'ios-other': { title: 'Put it on your Home Screen', body: 'It opens full-screen, like an app. Takes 20 seconds.', done: 'I’ve added it', skip: 'Not now' },
+  'in-app': { title: 'Open it in your browser first', body: 'To keep Saved Feed on your Home Screen, it needs to be open in Safari or Chrome.', skip: 'Continue here anyway' },
+  android: { title: 'Put it on your home screen', body: 'It opens full-screen, like an app.', skip: 'Continue' },
+  desktop: { title: 'Made for your phone', body: 'Saved Feed works best as an app on your phone’s Home Screen.', skip: 'Continue on this computer' },
+  installed: { title: '', body: '', skip: 'Continue' },
+}
+
+function InstallStep({ platform, onDone }: { platform: Platform; onDone: () => void }) {
+  const [added, setAdded] = useState(false)
+  const copy = INSTALL_COPY[platform]
+
+  if (added) {
+    return (
+      <div className="pt-safe pb-safe flex h-full flex-col items-center justify-center bg-ink-950 px-8 text-center">
+        <div className="grid size-16 place-items-center rounded-full bg-sunrise text-ink-950">
+          <IconCheck size={30} />
+        </div>
+        <h1 className="font-display mt-6 text-[28px] leading-tight font-bold tracking-tight">Now open it from your Home Screen</h1>
+        <p className="mt-3 max-w-xs text-[16px] leading-relaxed text-ink-300">Close the browser and tap Saved Feed on your Home Screen. Import your saves there, not here.</p>
+        <Button variant="ghost" className="mt-8" onClick={onDone}>
+          Keep using it in the browser
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="pt-safe pb-safe flex h-full flex-col bg-ink-950">
+      <div className="mx-auto flex w-full max-w-md items-center justify-between px-5 pt-3">
+        <Logo size={28} />
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto flex w-full max-w-md flex-col px-5 pt-8 pb-6">
+          <h1 className="font-display text-[28px] leading-tight font-bold tracking-tight">{copy.title}</h1>
+          <p className="mt-3 mb-7 text-[16px] leading-relaxed text-ink-300">{copy.body}</p>
+          <InstallGuide platform={platform} />
+        </div>
+      </div>
+      <div className="mx-auto flex w-full max-w-md items-center justify-end gap-3 px-5 pt-4 pb-6">
+        {/* In an app's built-in browser the goal is to leave, so staying is the quiet option. */}
+        <Button variant={copy.done || platform === 'in-app' ? 'ghost' : 'primary'} onClick={onDone}>
+          {copy.skip}
+        </Button>
+        {copy.done && (
+          <Button variant="primary" onClick={() => setAdded(true)}>
+            {copy.done}
+          </Button>
+        )}
       </div>
     </div>
   )

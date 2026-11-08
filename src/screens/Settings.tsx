@@ -7,6 +7,8 @@ import { useToast } from '../components/Toast'
 import { formatDate, plural } from '../lib/util'
 import { checkLogin, clearVideoCache, REFRESH_URL, VIDEO_LOOKUPS, type LoginStatus } from '../lib/video'
 import { useLibrary } from '../state/LibraryContext'
+import { InstallGuide } from '../components/InstallGuide'
+import { detectPlatform } from '../lib/platform'
 import { useOnboarding } from '../state/onboarding'
 import { useSettings } from '../state/settings'
 
@@ -120,6 +122,12 @@ export function Settings() {
             Erase everything on this device
           </Button>
         </Section>
+
+        {detectPlatform() !== 'installed' && (
+          <Section title="Add to Home Screen" hint="Opens full-screen, like an app.">
+            <InstallGuide />
+          </Section>
+        )}
 
         <Section title="How Saved Feed works">
           <Button size="sm" onClick={replayIntro}>
