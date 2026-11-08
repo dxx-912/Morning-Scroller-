@@ -25,7 +25,7 @@ export function InstallGuide({ platform = detectPlatform() }: { platform?: Platf
         <ol className="flex flex-col gap-3.5">
           {steps.map((s, i) => (
             <li key={i} className="flex gap-3">
-              <span className="grid size-6 shrink-0 place-items-center rounded-full bg-ink-800 text-xs font-bold text-sun-400">{i + 1}</span>
+              <span className="grid size-6 shrink-0 place-items-center rounded-full bg-ink-800 font-mono text-xs text-ink-400">{i + 1}</span>
               <div className="min-w-0 pt-0.5 text-[15px] leading-relaxed text-ink-100">
                 {s.text}
                 {s.note && <p className="mt-1 text-[13px] leading-snug text-ink-500">{s.note}</p>}
@@ -48,7 +48,7 @@ export function InstallGuide({ platform = detectPlatform() }: { platform?: Platf
 /** A small copy of a browser button, shown inline in the instructions. */
 function Key({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <span className={cx('mx-0.5 inline-flex h-7 items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-2 align-middle text-[13px] font-semibold text-white', className)}>
+    <span className={cx('mx-0.5 inline-flex h-7 items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-2 align-middle text-[13px] font-medium text-white', className)}>
       {children}
     </span>
   )

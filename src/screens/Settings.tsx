@@ -30,12 +30,12 @@ export function Settings() {
   return (
     <div className="pt-safe h-full overflow-y-auto">
       <div className="mx-auto flex max-w-lg flex-col gap-4 px-4 pt-4 pb-12">
-        <h1 className="font-display order-first text-2xl font-bold tracking-tight">Settings</h1>
+        <h1 className="font-display order-first text-[32px] leading-none">Settings</h1>
 
         <Section title="Import from Instagram" hint="Re-importing is safe: new saves are added and your categories are kept.">
           <ImportPanel />
           <details className="mt-4 text-sm">
-            <summary className="cursor-pointer font-semibold text-ink-300">How to get your export</summary>
+            <summary className="cursor-pointer font-medium text-ink-300">How to get your export</summary>
             <div className="mt-3">
               <ExportHowTo />
             </div>
@@ -52,22 +52,22 @@ export function Settings() {
             <p className="text-sm text-ink-500">None. Every post has loaded fine so far.</p>
           ) : (
             <>
-              <ul className="-mx-1 max-h-80 divide-y divide-ink-800 overflow-y-auto">
+              <ul className="-mx-1 max-h-80 divide-y divide-ink-100/8 overflow-y-auto">
                 {dead.map((p) => (
-                  <li key={p.shortcode} className="flex items-center gap-2 px-1 py-2.5">
+                  <li key={p.shortcode} className="flex items-center gap-1 px-1 py-2">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{p.author ? `@${p.author}` : p.shortcode}</p>
+                      <p className="truncate text-sm">{p.author ? `@${p.author}` : p.shortcode}</p>
                       <p className="text-xs text-ink-500">
                         {p.unavailableReason === 'watch-only' ? 'Only plays on Instagram' : `${p.kind} · saved ${formatDate(p.savedAt)}`}
                       </p>
                     </div>
-                    <a href={p.url} target="_blank" rel="noreferrer" className="rounded-full p-2 text-ink-400 hover:bg-ink-800 hover:text-ink-100" aria-label="Open in Instagram">
+                    <a href={p.url} target="_blank" rel="noreferrer" className="rounded-lg p-2 text-ink-500 transition-colors hover:bg-ink-800 hover:text-ink-100" aria-label="Open in Instagram">
                       <IconExternal size={18} />
                     </a>
-                    <button onClick={() => setStatus(p.shortcode, 'unknown')} className="rounded-full p-2 text-ink-400 hover:bg-ink-800 hover:text-ink-100" aria-label="Restore to feed" title="Restore to feed">
+                    <button onClick={() => setStatus(p.shortcode, 'unknown')} className="rounded-lg p-2 text-ink-500 transition-colors hover:bg-ink-800 hover:text-ink-100" aria-label="Restore to feed" title="Restore to feed">
                       <IconRestore size={18} />
                     </button>
-                    <button onClick={() => deletePosts([p.shortcode])} className="rounded-full p-2 text-ink-400 hover:bg-danger/15 hover:text-danger" aria-label="Remove" title="Remove">
+                    <button onClick={() => deletePosts([p.shortcode])} className="rounded-lg p-2 text-ink-500 transition-colors hover:bg-danger/12 hover:text-danger" aria-label="Remove" title="Remove">
                       <IconTrash size={18} />
                     </button>
                   </li>
@@ -97,7 +97,7 @@ export function Settings() {
         <Section title="Backup & move to another device" hint="A single JSON file with your posts, categories and dead-link flags. Import it on your phone to pick up where you left off.">
           <div className="flex flex-col gap-3">
             <BackupExportButtons />
-            <BackupImportButton className="self-start text-sm font-semibold text-sun-400 hover:underline">Restore from a backup file…</BackupImportButton>
+            <BackupImportButton className="self-start text-sm font-medium text-ink-300 underline decoration-ink-600 underline-offset-4 transition-colors hover:text-ink-100">Restore from a backup file…</BackupImportButton>
           </div>
         </Section>
 
@@ -135,10 +135,10 @@ export function Settings() {
           </Button>
         </Section>
 
-        <div className="mt-4 flex flex-col items-center gap-2 text-center text-xs text-ink-500">
-          <Logo size={24} />
-          <p>
-            Saved Feed {__APP_VERSION__} · beta
+        <div className="mt-8 flex flex-col items-center gap-3 text-center text-xs text-ink-500">
+          <Logo size={20} />
+          <p className="leading-relaxed">
+            Saved Feed <span className="font-mono">{__APP_VERSION__}</span> · beta
             <br />
             Not affiliated with Instagram or Meta.
           </p>
@@ -218,8 +218,8 @@ function VideoLogin({ reels }: { reels: string[] }) {
             href={REFRESH_URL}
             target="_blank"
             rel="noreferrer"
-            className={`inline-flex h-9 items-center gap-2 rounded-full px-3.5 text-sm font-semibold transition active:scale-[0.97] ${
-              broken ? 'bg-sunrise text-ink-950' : 'text-ink-300 hover:bg-ink-800 hover:text-ink-100'
+            className={`inline-flex h-9 items-center gap-2 rounded-[10px] px-4 text-sm font-medium transition-[background-color,color,transform] active:scale-[0.97] ${
+              broken ? 'bg-ink-100 text-ink-950 hover:bg-white' : 'text-ink-300 hover:bg-ink-800 hover:text-ink-100'
             }`}
           >
             Refresh login <IconExternal size={16} />
@@ -233,9 +233,9 @@ function VideoLogin({ reels }: { reels: string[] }) {
 
 function Section({ title, hint, children, id, className = '' }: { title: string; hint?: string; children: ReactNode; id?: string; className?: string }) {
   return (
-    <section id={id} className={`rounded-3xl border border-ink-800 bg-ink-900 p-5 ${className}`}>
-      <h2 className="text-[16px] font-semibold">{title}</h2>
-      {hint && <p className="mt-1 text-sm text-ink-400">{hint}</p>}
+    <section id={id} className={`rounded-2xl border border-ink-100/8 bg-ink-900 p-5 ${className}`}>
+      <h2 className="text-base font-medium">{title}</h2>
+      {hint && <p className="mt-1 text-sm leading-relaxed text-ink-400">{hint}</p>}
       <div className="mt-4">{children}</div>
     </section>
   )
@@ -245,11 +245,11 @@ function Toggle({ label, hint, checked, onChange }: { label: string; hint?: stri
   return (
     <label className="flex cursor-pointer items-start gap-4">
       <span className="flex-1">
-        <span className="block text-[15px] font-medium">{label}</span>
-        {hint && <span className="mt-0.5 block text-sm text-ink-400">{hint}</span>}
+        <span className="block text-[15px]">{label}</span>
+        {hint && <span className="mt-1 block text-sm leading-relaxed text-ink-400">{hint}</span>}
       </span>
       <input type="checkbox" className="peer sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <span className="relative mt-0.5 h-7 w-12 shrink-0 rounded-full bg-ink-700 transition peer-checked:bg-sun-500 peer-focus-visible:ring-2 peer-focus-visible:ring-sun-400 after:absolute after:top-1 after:left-1 after:size-5 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-5" />
+      <span className="relative mt-0.5 h-7 w-12 shrink-0 rounded-full bg-ink-700 transition-colors peer-checked:bg-sun-400 peer-focus-visible:ring-2 peer-focus-visible:ring-sun-400 after:absolute after:top-1 after:left-1 after:size-5 after:rounded-full after:bg-ink-100 after:transition-transform peer-checked:after:translate-x-5" />
     </label>
   )
 }

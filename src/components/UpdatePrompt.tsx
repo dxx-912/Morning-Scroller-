@@ -13,8 +13,8 @@ export function UpdatePrompt() {
   if (!needRefresh) return null
   return (
     <div className="fixed inset-x-0 top-[calc(env(safe-area-inset-top)+8px)] z-[70] flex justify-center px-4">
-      <div className="flex animate-pop items-center gap-3 rounded-2xl border border-ink-700 bg-ink-800 py-2 pr-2 pl-4 text-sm shadow-xl">
-        <span>A new version is ready.</span>
+      <div className="flex animate-pop items-center gap-2 rounded-xl border border-ink-100/8 bg-ink-800 py-2 pr-2 pl-4 text-sm shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
+        <span className="mr-1">New version ready</span>
         <Button size="sm" variant="primary" onClick={() => updateServiceWorker(true)}>
           Reload
         </Button>

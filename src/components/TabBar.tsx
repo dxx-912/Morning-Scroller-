@@ -13,7 +13,7 @@ export const TAB_BAR_HEIGHT = 60
 
 export function TabBar({ route, badge }: { route: Route; badge?: Partial<Record<Route, number>> }) {
   return (
-    <nav className="pb-safe relative z-30 shrink-0 border-t border-ink-800 bg-ink-950/95 backdrop-blur" aria-label="Main">
+    <nav className="pb-safe relative z-30 shrink-0 border-t border-ink-100/8 bg-ink-950" aria-label="Main">
       <ul className="mx-auto flex max-w-lg" style={{ height: TAB_BAR_HEIGHT }}>
         {TABS.map(({ route: r, label, Icon }) => {
           const active = r === route
@@ -23,12 +23,13 @@ export function TabBar({ route, badge }: { route: Route; badge?: Partial<Record<
               <button
                 onClick={() => navigate(r)}
                 aria-current={active ? 'page' : undefined}
-                className={cx('relative flex h-full w-full flex-col items-center justify-center gap-0.5 text-[10.5px] font-medium transition', active ? 'text-ink-100' : 'text-ink-500 hover:text-ink-300')}
+                className={cx('relative flex h-full w-full flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors', active ? 'text-ink-100' : 'text-ink-500 hover:text-ink-300')}
               >
-                <Icon size={23} strokeWidth={active ? 2.1 : 1.7} />
+                <Icon size={22} />
                 {label}
-                {active && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-sunrise" />}
-                {!!n && <span className="absolute top-2 left-[calc(50%+8px)] min-w-4 rounded-full bg-sun-600 px-1 text-[10px] leading-4 font-bold text-ink-950">{n > 99 ? '99+' : n}</span>}
+                {active && <span className="absolute top-0 h-0.5 w-6 rounded-full bg-sun-400" />}
+                {/* A count to review, not an alarm: quiet, in the folio face. */}
+                {!!n && <span className="absolute top-2 left-[calc(50%+8px)] min-w-4 rounded-full bg-ink-700 px-1 text-center font-mono text-[10px] leading-4 text-ink-100">{n > 99 ? '99+' : n}</span>}
               </button>
             </li>
           )

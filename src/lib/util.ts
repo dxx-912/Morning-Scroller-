@@ -23,6 +23,18 @@ export function hueFor(name: string): number {
   return hashString(name) % 360
 }
 
+/**
+ * Category colors: eight muted inks that sit quietly on the warm dark ramp,
+ * picked by the category's stored hue so existing categories keep a stable
+ * color. Used only as small dots.
+ */
+const CATEGORY_INKS = ['#d4876a', '#d1a65a', '#a9ad62', '#6fae8c', '#62a5b0', '#7f9bd0', '#a68cc8', '#c9849f']
+
+export function categoryColor(hue: number): string {
+  const i = Math.floor((((hue % 360) + 360) % 360) / 45)
+  return CATEGORY_INKS[i]
+}
+
 const dateFmt = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 
 export function formatDate(ms?: number): string {

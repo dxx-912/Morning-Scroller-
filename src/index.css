@@ -2,53 +2,60 @@
 
 @theme {
   --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-  --font-display: ui-rounded, 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* The morning paper: a serif for page titles and the Today masthead only. */
+  --font-display: 'Instrument Serif', ui-serif, Georgia, serif;
+  /* Folios: dates, counts and page numbers. */
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
 
-  --color-ink-950: #0b0b0d;
-  --color-ink-900: #111114;
-  --color-ink-850: #17171b;
-  --color-ink-800: #1e1e23;
-  --color-ink-700: #2a2a31;
-  --color-ink-600: #3a3a43;
-  --color-ink-500: #6c6c78;
-  --color-ink-400: #8e8e9a;
-  --color-ink-300: #b4b4bf;
-  --color-ink-100: #ededf2;
+  /* One warm graphite ramp. 950 page · 900 card · 850 sheet · 800 raised ·
+     700 control · 600 strong line · 500 muted text · 400 secondary · 100 primary.
+     300 sits between secondary and primary for body copy on cards. */
+  --color-ink-950: #121110;
+  --color-ink-900: #181715;
+  --color-ink-850: #1c1b19;
+  --color-ink-800: #24231f;
+  --color-ink-700: #302e2a;
+  --color-ink-600: #45423d;
+  --color-ink-500: #8a847a;
+  --color-ink-400: #aaa398;
+  --color-ink-300: #c8c2b6;
+  --color-ink-100: #efe9de;
 
-  /* "Sunrise": the app's own accent, warmer than Instagram's pink-purple. */
-  --color-sun-300: #ffd08a;
-  --color-sun-400: #ffb25e;
-  --color-sun-500: #ff8a4c;
-  --color-sun-600: #ff6250;
-  --color-danger: #ff5a5f;
-  --color-ok: #4ade80;
+  /* One accent: amber, like first light. Selection, progress, the one thing
+     that matters on a screen. Never a gradient. */
+  --color-sun-300: #f1c891;
+  --color-sun-400: #e6a04e;
+  --color-sun-500: #d98f3c;
+  --color-sun-600: #c47a2b;
+  --color-danger: #e5484d;
+  --color-ok: #4cc38a;
 
-  --animate-fade-in: fade-in 0.25s ease-out both;
-  --animate-sheet-in: sheet-in 0.32s cubic-bezier(0.2, 0.9, 0.25, 1) both;
-  --animate-pop: pop 0.18s ease-out both;
+  /* One easing curve for everything. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --default-transition-duration: 160ms;
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-fade-in: fade-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-rise: rise 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-sheet-in: sheet-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-pop: pop 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
 
   @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   @keyframes sheet-in {
     from { transform: translateY(100%); }
     to { transform: translateY(0); }
   }
   @keyframes pop {
-    from { transform: scale(0.96); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    from { transform: translateY(4px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
   }
-}
-
-@utility bg-sunrise {
-  background-image: linear-gradient(135deg, var(--color-sun-300) 0%, var(--color-sun-500) 45%, var(--color-sun-600) 100%);
-}
-
-@utility text-sunrise {
-  background-image: linear-gradient(135deg, var(--color-sun-300) 0%, var(--color-sun-500) 50%, var(--color-sun-600) 100%);
-  background-clip: text;
-  color: transparent;
 }
 
 @utility no-scrollbar {

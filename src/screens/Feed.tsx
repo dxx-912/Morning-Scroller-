@@ -11,7 +11,7 @@ import { ALL, UNCATEGORIZED, buildFeed } from '../lib/feed'
 import { useElementSize } from '../lib/hooks'
 import { getVideo, VIDEO_LOOKUPS } from '../lib/video'
 import type { Category, Post } from '../lib/types'
-import { formatDate, plural } from '../lib/util'
+import { categoryColor, formatDate, plural } from '../lib/util'
 import { useLibrary } from '../state/LibraryContext'
 import { navigate } from '../state/router'
 import { useOnboarding } from '../state/onboarding'
@@ -246,18 +246,26 @@ export function Feed({ categoryId }: { categoryId: string }) {
         <div className="pointer-events-auto mx-auto flex max-w-xl items-center justify-between px-4" style={{ height: HEADER_H }}>
           <button
             onClick={() => chooseCategory(null)}
-            className="flex max-w-[65%] items-center gap-1.5 rounded-full border border-ink-700 bg-ink-900/80 py-1.5 pr-2.5 pl-3.5 text-sm font-semibold backdrop-blur hover:border-ink-600"
+            className="flex max-w-[65%] items-center gap-1.5 rounded-full border border-ink-100/12 bg-ink-900 py-1.5 pr-2.5 pl-3.5 text-sm font-medium transition-colors hover:bg-ink-800"
             aria-label={`Today's category: ${label}. Change`}
           >
             <span className="truncate">{label}</span>
             <IconChevronDown size={16} className="shrink-0 text-ink-400" />
           </button>
           {order.length > 0 && (
-            <span className="text-xs font-medium text-ink-400 tabular-nums" aria-live="polite">
-              {Math.min(current + 1, order.length)} / {order.length}
+            <span className="font-mono text-xs text-ink-400 tabular-nums" aria-live="polite">
+              {Math.min(current + 1, order.length)} of {order.length}
             </span>
           )}
         </div>
+        {/* The folio's progress: how far into today's edition you are. */}
+        {order.length > 0 && (
+          <div className="mx-auto h-px max-w-xl px-4" aria-hidden>
+            <div className="h-full bg-ink-100/8">
+              <div className="h-full origin-left bg-sun-400 transition-transform duration-300" style={{ transform: `scaleX(${Math.min(current + 1, order.length) / order.length})` }} />
+            </div>
+          </div>
+        )}
       </div>
 
       {order.length === 0 ? (
@@ -374,12 +382,12 @@ function FeedItem({ post, categories, maxWidth, maxHeight, captioned, framed, ac
       </div>
       <div className="flex shrink-0 items-center gap-3 px-1" style={{ height: ACTIONS_H }}>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">{post.author ? `@${post.author}` : post.kind === 'reel' ? 'Reel' : 'Post'}</p>
+          <p className="truncate text-sm font-medium">{post.author ? `@${post.author}` : post.kind === 'reel' ? 'Reel' : 'Post'}</p>
           <p className="flex items-center gap-1.5 truncate text-xs text-ink-400">
             {cats.length > 0 ? (
               cats.slice(0, 3).map((c) => (
                 <span key={c.id} className="inline-flex items-center gap-1">
-                  <span className="size-1.5 rounded-full" style={{ background: `hsl(${c.hue} 85% 65%)` }} />
+                  <span className="size-1.5 rounded-full" style={{ background: categoryColor(c.hue) }} />
                   {c.name}
                 </span>
               ))
@@ -392,7 +400,7 @@ function FeedItem({ post, categories, maxWidth, maxHeight, captioned, framed, ac
         <ActionButton label="Categories" onClick={onTag}>
           <IconTag />
         </ActionButton>
-        <a href={post.url} target="_blank" rel="noreferrer" aria-label="Open in Instagram" className="grid size-10 place-items-center rounded-full text-ink-300 hover:bg-ink-800 hover:text-ink-100">
+        <a href={post.url} target="_blank" rel="noreferrer" aria-label="Open in Instagram" className="grid size-10 place-items-center rounded-full text-ink-300 transition-colors hover:bg-ink-800 hover:text-ink-100">
           <IconExternal />
         </a>
         <ActionButton label="Mark unavailable" onClick={onFlag}>
@@ -412,12 +420,12 @@ function FramedOverlay({ post, cats, onTag, onFlag }: { post: Post; cats: Catego
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end gap-2 bg-gradient-to-t from-black/75 via-black/35 to-transparent px-3 pt-12 pb-3 text-white">
       <div className="min-w-0 flex-1 pb-1 [text-shadow:0_1px_3px_rgb(0_0_0/0.6)]">
-        <p className="truncate text-[15px] font-semibold">{post.author ? `@${post.author}` : post.kind === 'post' ? 'Post' : 'Reel'}</p>
+        <p className="truncate text-[15px] font-medium">{post.author ? `@${post.author}` : post.kind === 'post' ? 'Post' : 'Reel'}</p>
         <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-white/80">
           {cats.length > 0 ? (
             cats.slice(0, 3).map((c) => (
               <span key={c.id} className="inline-flex items-center gap-1">
-                <span className="size-1.5 rounded-full" style={{ background: `hsl(${c.hue} 85% 65%)` }} />
+                <span className="size-1.5 rounded-full" style={{ background: categoryColor(c.hue) }} />
                 {c.name}
               </span>
             ))
@@ -431,7 +439,7 @@ function FramedOverlay({ post, cats, onTag, onFlag }: { post: Post; cats: Catego
         <OverlayButton label="Categories" onClick={onTag}>
           <IconTag />
         </OverlayButton>
-        <a href={post.url} target="_blank" rel="noreferrer" aria-label="Open in Instagram" title="Open in Instagram" className="grid size-10 place-items-center rounded-full text-white/90 transition hover:bg-white/15 active:scale-90">
+        <a href={post.url} target="_blank" rel="noreferrer" aria-label="Open in Instagram" title="Open in Instagram" className="grid size-10 place-items-center rounded-full text-white/90 transition-[background-color,transform] hover:bg-white/15 active:scale-95">
           <IconExternal />
         </a>
         <OverlayButton label="Mark unavailable" onClick={onFlag}>
@@ -444,7 +452,7 @@ function FramedOverlay({ post, cats, onTag, onFlag }: { post: Post; cats: Catego
 
 function OverlayButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} aria-label={label} title={label} className="grid size-10 place-items-center rounded-full text-white/90 transition hover:bg-white/15 active:scale-90">
+    <button onClick={onClick} aria-label={label} title={label} className="grid size-10 place-items-center rounded-full text-white/90 transition-[background-color,transform] hover:bg-white/15 active:scale-95">
       {children}
     </button>
   )
@@ -460,11 +468,11 @@ function FeedTip({ onDismiss }: { onDismiss: () => void }) {
   ]
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-4 z-30 flex justify-center px-4">
-      <div className="pointer-events-auto w-full max-w-sm animate-fade-in rounded-3xl border border-ink-700 bg-ink-900/95 p-4 shadow-2xl backdrop-blur" role="dialog" aria-label="How the feed works">
-        <ul className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+      <div className="pointer-events-auto w-full max-w-sm animate-rise rounded-2xl border border-ink-100/8 bg-ink-850 p-4 shadow-[0_8px_32px_rgba(0,0,0,0.45)]" role="dialog" aria-label="How the feed works">
+        <ul className="grid grid-cols-2 gap-x-3 gap-y-3">
           {tips.map((t) => (
             <li key={t.text} className="flex items-center gap-2 text-[13px] leading-snug text-ink-300">
-              <span className="shrink-0 text-sun-400">{t.icon}</span>
+              <span className="shrink-0 text-ink-400">{t.icon}</span>
               {t.text}
             </li>
           ))}
@@ -479,7 +487,7 @@ function FeedTip({ onDismiss }: { onDismiss: () => void }) {
 
 function ActionButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} aria-label={label} title={label} className="grid size-10 place-items-center rounded-full text-ink-300 transition hover:bg-ink-800 hover:text-ink-100 active:scale-90">
+    <button onClick={onClick} aria-label={label} title={label} className="grid size-10 place-items-center rounded-full text-ink-300 transition-[background-color,color,transform] hover:bg-ink-800 hover:text-ink-100 active:scale-95">
       {children}
     </button>
   )
@@ -487,7 +495,7 @@ function ActionButton({ label, onClick, children }: { label: string; onClick: ()
 
 function RoundButton({ label, onClick, disabled, children }: { label: string; onClick: () => void; disabled?: boolean; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} disabled={disabled} aria-label={label} title={label} className="grid size-11 place-items-center rounded-full border border-ink-700 bg-ink-900 text-ink-300 hover:text-ink-100 disabled:opacity-30">
+    <button onClick={onClick} disabled={disabled} aria-label={label} title={label} className="grid size-11 place-items-center rounded-full border border-ink-100/8 bg-ink-900 text-ink-300 transition-colors hover:bg-ink-800 hover:text-ink-100 disabled:opacity-30">
       {children}
     </button>
   )
@@ -495,15 +503,16 @@ function RoundButton({ label, onClick, disabled, children }: { label: string; on
 
 function EndCard({ count, label, onTop, onPick }: { count: number; label: string; onTop: () => void; onPick: () => void }) {
   return (
-    <section className="flex h-full snap-start flex-col items-center justify-center gap-4 px-8 text-center" style={{ paddingTop: HEADER_H }}>
-      <div className="grid size-16 place-items-center rounded-full bg-sunrise text-ink-950">
-        <IconShuffle size={28} />
-      </div>
-      <h2 className="font-display text-2xl font-bold tracking-tight">That's all for today</h2>
-      <p className="max-w-xs text-ink-400">
+    <section className="flex h-full snap-start flex-col items-center justify-center px-8 text-center" style={{ paddingTop: HEADER_H }}>
+      <p className="flex items-center gap-2 font-mono text-xs text-ink-500 tabular-nums">
+        <IconShuffle size={14} />
+        {count} of {count}
+      </p>
+      <h2 className="font-display mt-3 text-[36px] leading-tight">That's all for today</h2>
+      <p className="mt-3 max-w-xs text-[15px] leading-relaxed text-ink-400">
         You've seen {plural(count, 'post')} in <span className="text-ink-100">{label}</span>. Tomorrow brings a fresh shuffle.
       </p>
-      <div className="mt-2 flex flex-wrap justify-center gap-2">
+      <div className="mt-8 flex flex-wrap justify-center gap-2">
         <Button variant="primary" onClick={onPick}>
           Pick another category
         </Button>
@@ -518,7 +527,7 @@ function EndCard({ count, label, onTop, onPick }: { count: number; label: string
 function EmptyFeed({ label, onPick }: { label: string; onPick: () => void }) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
-      <h2 className="font-display text-xl font-bold">Nothing to show in {label}</h2>
+      <h2 className="font-display text-[28px] leading-tight">Nothing to show in {label}</h2>
       <p className="max-w-xs text-sm text-ink-400">Add posts to this category from the Library, or pick a different one.</p>
       <div className="mt-2 flex gap-2">
         <Button variant="primary" onClick={onPick}>

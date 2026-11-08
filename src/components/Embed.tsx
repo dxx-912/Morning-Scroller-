@@ -333,11 +333,11 @@ function Notice({ title, body, url, children }: { title: string; body: string; u
       <div className="grid size-12 place-items-center rounded-full bg-ink-800 text-ink-400">
         <IconFlag />
       </div>
-      <p className="font-semibold">{title}</p>
+      <p className="font-medium">{title}</p>
       <p className="text-sm text-ink-400">{body}</p>
       <div className="mt-1 flex gap-2">
         {children}
-        <a href={url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold text-ink-300 hover:bg-ink-800">
+        <a href={url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-[10px] px-4 text-sm font-medium text-ink-300 transition-colors hover:bg-ink-800">
           Open <IconExternal size={16} />
         </a>
       </div>

@@ -166,7 +166,7 @@ function VideoPlayer({ source, maxWidth, maxHeight, active, muted, onMutedChange
 
       {paused && (
         <button onClick={togglePause} aria-label="Play" className="absolute inset-0 grid place-items-center bg-black/25">
-          <span className="grid size-16 place-items-center rounded-full bg-black/50 text-white backdrop-blur">
+          <span className="grid size-16 place-items-center rounded-full bg-black/50 text-white">
             <IconPlay size={30} />
           </span>
         </button>
@@ -175,7 +175,7 @@ function VideoPlayer({ source, maxWidth, maxHeight, active, muted, onMutedChange
       <button
         onClick={toggleMute}
         aria-label={muted ? 'Turn sound on' : 'Mute'}
-        className="absolute right-3 bottom-4 flex h-9 items-center gap-1.5 rounded-full bg-black/55 px-3 text-sm font-semibold text-white backdrop-blur transition active:scale-95"
+        className="absolute right-3 bottom-4 flex h-9 items-center gap-1.5 rounded-full bg-black/55 px-3 text-sm font-medium text-white transition-transform active:scale-95"
       >
         {muted ? <IconMuted size={18} /> : <IconVolume size={18} />}
         {muted && <span>Tap for sound</span>}

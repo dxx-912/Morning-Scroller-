@@ -4,7 +4,7 @@ type P = SVGProps<SVGSVGElement> & { size?: number }
 
 function Icon({ size = 22, children, ...rest }: P & { children: React.ReactNode }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...rest}>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...rest}>
       {children}
     </svg>
   )
@@ -152,18 +152,12 @@ export const IconSelect = (p: P) => (
 )
 
 /** The app mark: a bookmark ribbon with a sunrise gradient. */
+/** The mark: a bookmark, flat, in the accent. */
 export function Logo({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
-      <defs>
-        <linearGradient id="sf-logo-g" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#ffd08a" />
-          <stop offset=".5" stopColor="#ff8a4c" />
-          <stop offset="1" stopColor="#ff6250" />
-        </linearGradient>
-      </defs>
-      <path d="M18 8h28a4 4 0 0 1 4 4v44l-18-11-18 11V12a4 4 0 0 1 4-4Z" fill="url(#sf-logo-g)" />
-      <circle cx="32" cy="27" r="7" fill="#0b0b0d" />
+      <path d="M18 8h28a4 4 0 0 1 4 4v44l-18-11-18 11V12a4 4 0 0 1 4-4Z" fill="var(--color-sun-400)" />
+      <circle cx="32" cy="27" r="7" fill="var(--color-ink-950)" />
     </svg>
   )
 }

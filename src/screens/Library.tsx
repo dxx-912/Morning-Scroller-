@@ -5,9 +5,8 @@ import { IconCheck, IconClose, IconExternal, IconFlag, IconPhoto, IconReel, Icon
 import { Button, ConfirmSheet, Sheet } from '../components/Sheet'
 import { useToast } from '../components/Toast'
 import { ALL, UNCATEGORIZED, inCategory } from '../lib/feed'
-import { hashString } from '../lib/shuffle'
 import type { Category, Post } from '../lib/types'
-import { cx, formatDate, plural } from '../lib/util'
+import { categoryColor, cx, formatDate, plural } from '../lib/util'
 import { useLibrary } from '../state/LibraryContext'
 import { useSettings } from '../state/settings'
 
@@ -74,15 +73,15 @@ export function Library() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="pt-safe shrink-0 border-b border-ink-800/80 bg-ink-950">
+      <header className="pt-safe shrink-0 border-b border-ink-100/8 bg-ink-950">
         <div className="mx-auto max-w-5xl px-4 pt-4">
           <div className="flex items-center justify-between gap-3">
             {selecting ? (
               <>
-                <button onClick={exitSelect} className="-ml-2 flex items-center gap-1 rounded-full p-2 text-ink-300 hover:text-ink-100" aria-label="Cancel selection">
+                <button onClick={exitSelect} className="-ml-2 flex items-center gap-1 rounded-lg p-2 text-ink-300 transition-colors hover:text-ink-100" aria-label="Cancel selection">
                   <IconClose size={20} />
                 </button>
-                <h1 className="flex-1 text-lg font-semibold">{selected.size ? `${selected.size} selected` : 'Select posts'}</h1>
+                <h1 className="flex-1 text-lg font-medium">{selected.size ? `${selected.size} selected` : 'Select posts'}</h1>
                 <Button
                   size="sm"
                   variant="ghost"
@@ -93,8 +92,8 @@ export function Library() {
               </>
             ) : (
               <>
-                <h1 className="font-display text-2xl font-bold tracking-tight">
-                  Library <span className="text-base font-medium text-ink-500">{posts.length.toLocaleString()}</span>
+                <h1 className="font-display flex items-baseline gap-2 text-[32px] leading-none">
+                  Library <span className="font-mono text-xs text-ink-500 tabular-nums">{posts.length.toLocaleString()}</span>
                 </h1>
                 <Button size="sm" variant="secondary" onClick={() => setSelecting(true)} disabled={posts.length === 0}>
                   <IconSelect size={17} /> Select
@@ -104,7 +103,7 @@ export function Library() {
           </div>
 
           <div className="mt-3 flex gap-2">
-            <label className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-ink-900 px-3.5 text-ink-400 focus-within:ring-1 focus-within:ring-sun-500">
+            <label className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[10px] border border-ink-100/8 bg-ink-900 px-3 text-ink-500 focus-within:border-sun-500/60">
               <IconSearch size={18} />
               <input
                 value={query}
@@ -121,7 +120,7 @@ export function Library() {
                 setKind(k as KindFilter)
                 setSort(s as Sort)
               }}
-              className="h-10 rounded-full bg-ink-900 px-3 text-sm text-ink-300 focus:outline-none"
+              className="h-10 rounded-[10px] border border-ink-100/8 bg-ink-900 px-3 text-sm text-ink-300 focus:border-sun-500/60 focus:outline-none"
               aria-label="Type and sort"
             >
               <option value="any:newest">All · newest</option>
@@ -133,19 +132,19 @@ export function Library() {
 
           <div className="no-scrollbar -mx-4 mt-3 flex gap-1.5 overflow-x-auto px-4 pb-3">
             <Chip active={validCat === ALL} onClick={() => setCat(ALL)}>
-              All <span className="opacity-60">{posts.length}</span>
+              All <span className="font-mono text-xs tabular-nums opacity-60">{posts.length}</span>
             </Chip>
             {categories
               .slice()
               .sort((a, b) => a.name.localeCompare(b.name))
               .map((c) => (
                 <Chip key={c.id} active={validCat === c.id} onClick={() => setCat(c.id)} hue={c.hue}>
-                  {c.name} <span className="opacity-60">{counts.get(c.id) ?? 0}</span>
+                  {c.name} <span className="font-mono text-xs tabular-nums opacity-60">{counts.get(c.id) ?? 0}</span>
                 </Chip>
               ))}
             {uncategorized > 0 && (
               <Chip active={validCat === UNCATEGORIZED} onClick={() => setCat(UNCATEGORIZED)}>
-                Uncategorized <span className="opacity-60">{uncategorized}</span>
+                Uncategorized <span className="font-mono text-xs tabular-nums opacity-60">{uncategorized}</span>
               </Chip>
             )}
           </div>
@@ -157,7 +156,7 @@ export function Library() {
           {filtered.length === 0 ? (
             <p className="py-20 text-center text-ink-400">{posts.length === 0 ? 'Your library is empty. Import your export in Settings.' : 'No posts match.'}</p>
           ) : (
-            <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
+            <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
               {filtered.slice(0, limit).map((p) => (
                 <li key={p.shortcode}>
                   <PostTile
@@ -219,21 +218,21 @@ function Chip({ active, onClick, hue, children }: { active: boolean; onClick: ()
       onClick={onClick}
       aria-pressed={active}
       className={cx(
-        'flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium whitespace-nowrap transition',
-        active ? 'bg-ink-100 text-ink-950' : 'bg-ink-900 text-ink-300 hover:bg-ink-800',
+        'flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm whitespace-nowrap transition-colors',
+        active ? 'border-transparent bg-ink-100 text-ink-950' : 'border-ink-100/8 bg-ink-900 text-ink-300 hover:bg-ink-800',
       )}
     >
-      {hue !== undefined && <span className="size-2 rounded-full" style={{ background: `hsl(${hue} 85% ${active ? 45 : 65}%)` }} />}
+      {hue !== undefined && <span className="size-2 rounded-full" style={{ background: categoryColor(hue) }} />}
       {children}
     </button>
   )
 }
 
-/** Instagram doesn't expose thumbnails without an API key, so each tile gets a generated gradient. */
+/**
+ * Instagram doesn't expose thumbnails without an API key, so each post is an
+ * index card: what it is, who posted it, when you saved it, where it's filed.
+ */
 function PostTile({ post, categories, selecting, selected, onClick }: { post: Post; categories: Category[]; selecting: boolean; selected: boolean; onClick: () => void }) {
-  const h = hashString(post.shortcode)
-  const hue = h % 360
-  const angle = (h >> 9) % 360
   const cats = categories.filter((c) => post.categoryIds.includes(c.id))
   const dead = post.status === 'unavailable'
   return (
@@ -241,43 +240,33 @@ function PostTile({ post, categories, selecting, selected, onClick }: { post: Po
       onClick={onClick}
       aria-pressed={selecting ? selected : undefined}
       className={cx(
-        'group relative flex aspect-[4/5] w-full flex-col justify-between overflow-hidden rounded-2xl p-3 text-left transition active:scale-[0.98]',
-        selected && 'ring-2 ring-sun-500 ring-offset-2 ring-offset-ink-950',
-        dead && 'opacity-50 grayscale',
+        'flex h-full w-full flex-col rounded-xl border bg-ink-900 p-3 text-left transition-[background-color,border-color,transform] hover:bg-ink-850 active:scale-[0.98]',
+        selected ? 'border-sun-400' : 'border-ink-100/8',
       )}
-      style={{
-        background: `linear-gradient(${angle}deg, hsl(${hue} 45% 20%), hsl(${(hue + 50) % 360} 55% 12%) 70%), var(--color-ink-900)`,
-      }}
     >
-      <div className="flex items-start justify-between">
-        <span className="flex items-center gap-1 rounded-full bg-black/35 px-2 py-1 text-[11px] font-semibold text-white/85 backdrop-blur">
-          {post.kind === 'reel' ? <IconReel size={13} /> : <IconPhoto size={13} />}
+      <div className="flex h-5 items-center justify-between text-xs text-ink-500">
+        <span className="flex items-center gap-1.5">
+          {post.kind === 'reel' ? <IconReel size={14} /> : <IconPhoto size={14} />}
           {post.kind === 'reel' ? 'Reel' : post.kind === 'igtv' ? 'Video' : 'Post'}
         </span>
         {selecting ? (
-          <span className={cx('grid size-6 place-items-center rounded-full border-2', selected ? 'border-transparent bg-sunrise text-ink-950' : 'border-white/60 bg-black/20')}>
-            {selected && <IconCheck size={14} strokeWidth={3} />}
+          <span className={cx('grid size-5 place-items-center rounded-full border transition-colors', selected ? 'border-transparent bg-sun-400 text-ink-950' : 'border-ink-600')}>
+            {selected && <IconCheck size={13} strokeWidth={2.4} />}
           </span>
         ) : (
-          dead && <span className="rounded-full bg-black/50 px-2 py-1 text-[10px] font-bold tracking-wide text-white uppercase">Unavailable</span>
+          dead && <span className="text-ink-500">Unavailable</span>
         )}
       </div>
-      <span className="font-display pointer-events-none absolute inset-0 grid place-items-center text-5xl font-bold text-white/10 select-none" aria-hidden="true">
-        {(post.author ?? post.shortcode).charAt(0).toUpperCase()}
-      </span>
-      <div className="relative min-w-0">
-        <p className="truncate text-sm font-semibold text-white">{post.author ? `@${post.author}` : post.shortcode}</p>
-        <p className="text-[11px] text-white/60">{formatDate(post.savedAt)}</p>
-        {cats.length > 0 && (
-          <div className="mt-1.5 flex flex-wrap gap-1">
-            {cats.slice(0, 2).map((c) => (
-              <span key={c.id} className="max-w-full truncate rounded-full bg-black/35 px-2 py-0.5 text-[10.5px] text-white/85">
-                {c.name}
-              </span>
-            ))}
-            {cats.length > 2 && <span className="rounded-full bg-black/35 px-1.5 py-0.5 text-[10.5px] text-white/70">+{cats.length - 2}</span>}
-          </div>
-        )}
+      <p className={cx('mt-4 truncate text-[15px] font-medium', dead && 'text-ink-500')}>{post.author ? `@${post.author}` : post.shortcode}</p>
+      <p className="mt-0.5 font-mono text-[11px] text-ink-500 tabular-nums">{formatDate(post.savedAt)}</p>
+      <div className="mt-3 flex min-h-4 flex-wrap items-center gap-x-3 gap-y-1">
+        {cats.slice(0, 2).map((c) => (
+          <span key={c.id} className="flex max-w-full items-center gap-1.5 truncate text-xs text-ink-400">
+            <span className="size-1.5 shrink-0 rounded-full" style={{ background: categoryColor(c.hue) }} />
+            {c.name}
+          </span>
+        ))}
+        {cats.length > 2 && <span className="font-mono text-[11px] text-ink-500">+{cats.length - 2}</span>}
       </div>
     </button>
   )
@@ -308,11 +297,11 @@ function PostSheet({ code, onClose }: { code: string | null; onClose: () => void
               }}
             />
           </div>
-          <p className="text-center text-xs text-ink-500">
+          <p className="text-center font-mono text-xs text-ink-500">
             Saved {formatDate(post.savedAt)} · {post.shortcode}
           </p>
           <div className="flex flex-wrap justify-center gap-2">
-            <a href={post.url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-full bg-ink-800 px-3.5 text-sm font-semibold hover:bg-ink-700">
+            <a href={post.url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-2 rounded-[10px] border border-ink-100/8 bg-ink-800 px-4 text-sm font-medium transition-colors hover:bg-ink-700">
               <IconExternal size={16} /> Instagram
             </a>
             {post.status === 'unavailable' ? (
@@ -337,7 +326,7 @@ function PostSheet({ code, onClose }: { code: string | null; onClose: () => void
             </Button>
           </div>
           <div>
-            <p className="mb-2 text-xs font-semibold tracking-wide text-ink-500 uppercase">Categories</p>
+            <p className="mb-2 text-sm text-ink-400">Categories</p>
             <CategoryAssignList codes={[post.shortcode]} />
           </div>
         </div>

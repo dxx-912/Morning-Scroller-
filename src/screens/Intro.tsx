@@ -4,7 +4,7 @@ import { InstallGuide } from '../components/InstallGuide'
 import { IconCheck, IconExternal, IconFlag, IconPlay, IconShuffle, IconTag, IconUpload, Logo } from '../components/icons'
 import { Button } from '../components/Sheet'
 import { detectPlatform, type Platform } from '../lib/platform'
-import { cx } from '../lib/util'
+import { categoryColor, cx } from '../lib/util'
 
 /**
  * The one-time intro: what Saved Feed is for, how it works, and what it does
@@ -24,7 +24,7 @@ const SLIDES: Slide[] = [
       <>
         Your saves,
         <br />
-        <span className="text-sunrise">actually seen.</span>
+        actually seen.
       </>
     ),
     body: 'You save posts to come back to. You rarely do. Saved Feed turns them into a short, calm feed you can get through each day.',
@@ -98,7 +98,7 @@ export function Intro({ onDone, replay = false }: { onDone: () => void; replay?:
       <div className="mx-auto flex w-full max-w-md items-center justify-between px-5 pt-3">
         <Logo size={28} />
         {!last && (
-          <button onClick={finishSlides} className="rounded-full px-3 py-1.5 text-sm font-semibold text-ink-400 hover:bg-ink-800 hover:text-ink-100">
+          <button onClick={finishSlides} className="rounded-lg px-3 py-1.5 text-sm font-medium text-ink-400 transition-colors hover:bg-ink-800 hover:text-ink-100">
             {replay ? 'Close' : 'Skip'}
           </button>
         )}
@@ -115,12 +115,12 @@ export function Intro({ onDone, replay = false }: { onDone: () => void; replay?:
           >
             <div className="mx-auto flex w-full max-w-md flex-col">
               <ArtStage>{s.art}</ArtStage>
-              <h1 className={cx('font-display font-bold tracking-tight', i === 0 ? 'text-[36px] leading-[1.05]' : 'text-[28px] leading-tight')}>{s.title}</h1>
+              <h1 className={cx('font-display', i === 0 ? 'text-[44px] leading-[1.02] tracking-[-0.02em]' : 'text-[34px] leading-[1.08]')}>{s.title}</h1>
               {/* Room for 4 lines, so titles line up from slide to slide. */}
               <p className="mt-3 min-h-[4lh] text-[16px] leading-relaxed text-ink-300">{s.body}</p>
               {i === 0 && !replay && (
                 <p className="mt-6 text-sm text-ink-500">
-                  Already use Saved Feed? <BackupImportButton className="font-semibold text-sun-400 hover:underline">Restore a backup</BackupImportButton>
+                  Already use Saved Feed? <BackupImportButton className="font-medium text-ink-100 underline decoration-ink-600 underline-offset-4 transition-colors hover:decoration-ink-400">Restore a backup</BackupImportButton>
                 </p>
               )}
             </div>
@@ -135,7 +135,7 @@ export function Intro({ onDone, replay = false }: { onDone: () => void; replay?:
               key={i}
               tabIndex={-1}
               onClick={() => goTo(i)}
-              className={cx('h-1.5 rounded-full transition-all', i === step ? 'w-6 bg-sun-400' : 'w-1.5 bg-ink-700')}
+              className={cx('size-1.5 rounded-full transition-colors', i === step ? 'bg-sun-400' : 'bg-ink-700')}
             />
           ))}
         </div>
@@ -173,10 +173,10 @@ function InstallStep({ platform, onDone }: { platform: Platform; onDone: () => v
   if (added) {
     return (
       <div className="pt-safe pb-safe flex h-full flex-col items-center justify-center bg-ink-950 px-8 text-center">
-        <div className="grid size-16 place-items-center rounded-full bg-sunrise text-ink-950">
+        <div className="grid size-14 place-items-center rounded-full border border-ink-100/8 bg-ink-800 text-sun-400">
           <IconCheck size={30} />
         </div>
-        <h1 className="font-display mt-6 text-[28px] leading-tight font-bold tracking-tight">Now open it from your Home Screen</h1>
+        <h1 className="font-display mt-6 text-[34px] leading-[1.08]">Now open it from your Home Screen</h1>
         <p className="mt-3 max-w-xs text-[16px] leading-relaxed text-ink-300">Close the browser and tap Saved Feed on your Home Screen. Import your saves there, not here.</p>
         <Button variant="ghost" className="mt-8" onClick={onDone}>
           Keep using it in the browser
@@ -192,7 +192,7 @@ function InstallStep({ platform, onDone }: { platform: Platform; onDone: () => v
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex w-full max-w-md flex-col px-5 pt-8 pb-6">
-          <h1 className="font-display text-[28px] leading-tight font-bold tracking-tight">{copy.title}</h1>
+          <h1 className="font-display text-[34px] leading-[1.08]">{copy.title}</h1>
           <p className="mt-3 mb-7 text-[16px] leading-relaxed text-ink-300">{copy.body}</p>
           <InstallGuide platform={platform} />
         </div>
@@ -231,7 +231,7 @@ function Card({ className = '', children }: { className?: string; children?: Rea
   return <div className={cx('rounded-2xl border border-ink-700 bg-ink-850', className)}>{children}</div>
 }
 
-function Row({ icon, iconClass = 'bg-ink-800 text-sun-400', children, className = '' }: { icon: ReactNode; iconClass?: string; children: ReactNode; className?: string }) {
+function Row({ icon, iconClass = 'bg-ink-800 text-ink-400', children, className = '' }: { icon: ReactNode; iconClass?: string; children: ReactNode; className?: string }) {
   return (
     <Card className={cx('flex items-center gap-3 px-3 py-2', className)}>
       <span className={cx('grid size-8 shrink-0 place-items-center rounded-full', iconClass)}>{icon}</span>
@@ -255,7 +255,7 @@ function ArtStack() {
 function ArtSteps() {
   const steps = [
     { icon: <IconUpload size={18} />, label: 'Download your Instagram data' },
-    { icon: <span className="text-[11px] font-bold">.zip</span>, label: 'Drop the file in' },
+    { icon: <span className="font-mono text-[10px]">.zip</span>, label: 'Drop the file in' },
     { icon: <IconTag size={18} />, label: 'Collections → categories' },
   ]
   return (
@@ -269,27 +269,29 @@ function ArtSteps() {
   )
 }
 
+/** A small copy of the Today masthead (today's real date), then the day's sections. */
 function ArtCategories() {
-  const cats = [
-    { name: 'All saved', hue: null, on: true },
-    { name: 'Recipes', hue: 20 },
-    { name: 'Travel', hue: 190 },
+  const rows = [
+    { name: 'All saved', n: 158, hue: null },
+    { name: 'Recipes', n: 41, hue: 20 },
+    { name: 'Travel', n: 27, hue: 190 },
   ]
   return (
-    <div className="flex w-full flex-col gap-2">
-      {cats.map((c) => (
-        <Card key={c.name} className={cx('flex items-center gap-3 px-3 py-2', c.on && 'border-sun-500/60')}>
-          <span
-            className={cx('grid size-8 shrink-0 place-items-center rounded-lg text-[13px] font-bold text-ink-950', c.hue === null && 'bg-sunrise')}
-            style={c.hue !== null ? { background: `hsl(${c.hue} 85% 65%)` } : undefined}
-          >
-            {c.hue === null ? <IconShuffle size={16} /> : c.name[0]}
-          </span>
-          <span className="flex-1 text-[13px] font-medium">{c.name}</span>
-          {c.on && <IconCheck size={18} className="shrink-0 text-sun-400" />}
-        </Card>
-      ))}
-    </div>
+    <Card className="w-full px-4 pt-3 pb-1">
+      <p className="font-mono text-[10px] text-ink-500">{new Intl.DateTimeFormat(undefined, { weekday: 'long' }).format(new Date())}</p>
+      <p className="font-display text-[24px] leading-tight">{new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'long' }).format(new Date())}</p>
+      <ul className="mt-2 border-t border-ink-100/15">
+        {rows.map((r) => (
+          <li key={r.name} className="flex h-8 items-center gap-3 border-b border-ink-100/8 text-[13px] last:border-b-0">
+            <span className="grid size-4 place-items-center">
+              {r.hue === null ? <IconShuffle size={14} className="text-sun-400" /> : <span className="size-1.5 rounded-full" style={{ background: categoryColor(r.hue) }} />}
+            </span>
+            <span className="flex-1">{r.name}</span>
+            <span className="font-mono text-[11px] text-ink-500">{r.n}</span>
+          </li>
+        ))}
+      </ul>
+    </Card>
   )
 }
 
@@ -300,7 +302,7 @@ function ArtPhone() {
         <IconPlay size={16} />
       </span>
       <div className="absolute inset-x-0 bottom-0 flex items-center gap-1 bg-gradient-to-t from-black/70 to-transparent px-2 pt-6 pb-2 text-white">
-        <span className="min-w-0 flex-1 truncate text-[9px] font-semibold">@you</span>
+        <span className="min-w-0 flex-1 truncate text-[9px] font-medium">@you</span>
         <IconTag size={11} className="shrink-0" />
         <IconExternal size={11} className="shrink-0" />
         <IconFlag size={11} className="shrink-0" />
@@ -336,7 +338,7 @@ function ArtPrivate() {
           <rect x="5" y="11" width="14" height="10" rx="2" />
           <path d="M8 11V8a4 4 0 0 1 8 0v3" />
         </svg>
-        <span className="text-[11px] font-semibold text-ink-300">On this device</span>
+        <span className="text-[11px] font-medium text-ink-300">On this device</span>
       </div>
     </div>
   )

@@ -29,12 +29,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {items.map((t) => (
           <div
             key={t.id}
-            className="pointer-events-auto flex max-w-sm animate-pop items-center gap-3 rounded-2xl border border-ink-700 bg-ink-800/95 py-2.5 pr-2.5 pl-4 text-sm shadow-xl backdrop-blur"
+            className="pointer-events-auto flex max-w-sm animate-pop items-center gap-3 rounded-xl border border-ink-100/8 bg-ink-800 py-2 pr-2 pl-4 text-sm shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
           >
             <span className="flex-1">{t.text}</span>
             {t.action && (
               <button
-                className="rounded-full px-3 py-1 font-semibold text-sun-400 hover:bg-ink-700"
+                className="rounded-lg px-3 py-1.5 font-medium text-sun-400 transition-colors hover:bg-ink-700"
                 onClick={() => {
                   t.action!.run()
                   setItems((xs) => xs.filter((x) => x.id !== t.id))

@@ -57,11 +57,11 @@ export function ImportPanel({ onDone }: { onDone?: (stats: ImportStats) => void 
         </div>
         {collections.length > 0 && (
           <div>
-            <p className="mb-2 text-xs font-semibold tracking-wide text-ink-500 uppercase">Collections become categories</p>
-            <div className="flex flex-wrap gap-1.5">
+            <p className="mb-2 text-sm text-ink-400">Collections become categories</p>
+            <div className="flex flex-wrap gap-2">
               {collections.map((c) => (
-                <span key={c.name} className="rounded-full bg-ink-800 px-3 py-1 text-sm">
-                  {c.name} <span className="text-ink-500">{c.count}</span>
+                <span key={c.name} className="flex h-8 items-center gap-1.5 rounded-full border border-ink-100/8 bg-ink-800 px-3 text-sm">
+                  {c.name} <span className="font-mono text-xs text-ink-500 tabular-nums">{c.count}</span>
                 </span>
               ))}
             </div>
@@ -95,10 +95,10 @@ export function ImportPanel({ onDone }: { onDone?: (stats: ImportStats) => void 
     const { stats } = phase
     return (
       <div className="flex animate-pop flex-col items-center gap-2 py-4 text-center">
-        <div className="grid size-12 place-items-center rounded-full bg-ok/15 text-ok">
+        <div className="grid size-12 place-items-center rounded-full bg-ok/12 text-ok">
           <IconCheck />
         </div>
-        <p className="font-semibold">Imported</p>
+        <p className="font-medium">Imported</p>
         <p className="text-sm text-ink-400">
           {plural(stats.added, 'new post')}
           {stats.updated > 0 && `, ${stats.updated} updated`}
@@ -127,16 +127,16 @@ export function ImportPanel({ onDone }: { onDone?: (stats: ImportStats) => void 
           handle(e.dataTransfer.files)
         }}
         className={cx(
-          'flex flex-col items-center gap-3 rounded-3xl border-2 border-dashed px-6 py-8 text-center transition',
-          dragging ? 'border-sun-500 bg-sun-500/5' : 'border-ink-700',
+          'flex flex-col items-center gap-4 rounded-2xl border border-dashed px-6 py-8 text-center transition-colors',
+          dragging ? 'border-sun-400 bg-sun-400/5' : 'border-ink-600',
         )}
       >
-        <div className={cx('grid size-12 place-items-center rounded-full bg-ink-800 text-sun-400', busy && 'animate-pulse')}>
+        <div className={cx('grid size-12 place-items-center rounded-full bg-ink-800 text-ink-400', busy && 'animate-pulse')}>
           <IconUpload />
         </div>
         <div>
-          <p className="font-semibold">{busy ? 'Reading your export…' : 'Drop your Instagram export'}</p>
-          <p className="mt-1 text-sm text-ink-400">The .zip, the unzipped folder, or saved_posts.json + saved_collections.json</p>
+          <p className="font-medium">{busy ? 'Reading your export…' : 'Drop your Instagram export'}</p>
+          <p className="mt-1 text-sm leading-relaxed text-ink-400">The .zip, the unzipped folder, or saved_posts.json + saved_collections.json</p>
         </div>
         <div className="flex flex-wrap justify-center gap-2">
           <Button variant="primary" disabled={busy} onClick={() => filesInput.current?.click()}>
@@ -176,8 +176,8 @@ export function ImportPanel({ onDone }: { onDone?: (stats: ImportStats) => void 
 
 function Stat({ n, label, highlight }: { n: number; label: string; highlight?: boolean }) {
   return (
-    <div className="rounded-2xl bg-ink-800/70 px-3 py-3 text-center">
-      <p className={cx('font-display text-2xl font-bold tabular-nums', highlight && 'text-sunrise')}>{n.toLocaleString()}</p>
+    <div className={cx('rounded-xl border px-3 py-3 text-center', highlight ? 'border-sun-400/40 bg-ink-800' : 'border-ink-100/8 bg-ink-900')}>
+      <p className="font-mono text-2xl leading-8 tabular-nums">{n.toLocaleString()}</p>
       <p className="text-xs text-ink-400">{label}</p>
     </div>
   )
@@ -193,7 +193,7 @@ export function ExportHowTo() {
         'When the email arrives, download the .zip and drop it here. Media files inside are ignored.',
       ].map((t, i) => (
         <li key={i} className="flex gap-3">
-          <span className="grid size-6 shrink-0 place-items-center rounded-full bg-ink-800 text-xs font-bold text-sun-400">{i + 1}</span>
+          <span className="grid size-6 shrink-0 place-items-center rounded-full bg-ink-800 font-mono text-xs text-ink-400">{i + 1}</span>
           <span className="pt-0.5">{t}</span>
         </li>
       ))}

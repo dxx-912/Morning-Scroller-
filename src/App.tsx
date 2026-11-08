@@ -40,7 +40,7 @@ function Shell() {
   if (!ready || introSeen === undefined) {
     return (
       <div className="grid h-full place-items-center">
-        <div className="animate-pulse">
+        <div className="animate-fade-in">
           <Logo size={44} />
         </div>
       </div>
