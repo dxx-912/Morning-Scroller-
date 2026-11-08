@@ -264,7 +264,8 @@ function AndroidOneTap() {
 }
 
 function OpenOnPhone() {
-  const url = typeof location !== 'undefined' ? location.origin : ''
+  // Always the public address: Vercel's deployment URLs ask for a Vercel login.
+  const url = __PUBLIC_URL__ || (typeof location !== 'undefined' ? location.origin : '')
   const qr = useMemo(() => renderSVG(url, { border: 1, pixelSize: 6, whiteColor: '#ffffff', blackColor: '#0b0b0d' }), [url])
   return (
     <div className="flex items-center gap-4 rounded-2xl border border-ink-800 bg-ink-900 p-4">

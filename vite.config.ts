@@ -7,9 +7,17 @@ import { VitePWA } from 'vite-plugin-pwa'
 import pkg from './package.json' with { type: 'json' }
 import { videoApi } from './server/videoApi'
 
+// The site's public address, for the "open it on your phone" QR code.
+// Vercel's per-deployment and branch URLs ask visitors to log in to Vercel,
+// so link to the production domain instead. Vercel provides it at build time;
+// VITE_PUBLIC_URL overrides it (e.g. for a custom domain).
+const PUBLIC_URL =
+  process.env.VITE_PUBLIC_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '')
+
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+    __PUBLIC_URL__: JSON.stringify(PUBLIC_URL.replace(/\/$/, '')),
   },
   plugins: [
     react(),
