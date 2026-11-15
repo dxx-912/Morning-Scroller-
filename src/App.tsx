@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import { Logo } from './components/icons'
 import { TabBar } from './components/TabBar'
 import { ToastProvider } from './components/Toast'
@@ -20,6 +21,7 @@ export default function App() {
       <LibraryProvider>
         <Shell />
         <UpdatePrompt />
+        <Analytics />
       </LibraryProvider>
     </ToastProvider>
   )
